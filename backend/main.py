@@ -188,23 +188,25 @@ async def search_face(file: UploadFile = File(...)):
                 detector_backend="opencv",
                 enforce_detection=True
             )
-             embedding = embedding_objs[0]["embedding"]
-        except ValueError:
-             # Try without strict detection if failed
-             embedding_objs = DeepFace.represent(
-                img_path=file_location,
-                model_name="ArcFace",
-                enforce_detection=False
-            )
-             embedding = embedding_objs[0]["embedding"]
+        # Ensure embedding is a standard list of floats (Crucial for JSON serialization)
+        embedding = [float(x) for x in embedding_objs[0]["embedding"]]
 
-        # 2. Vector Search (RPC) -- STRICT THRESHOLD FOR REALISM
+        # 2. Vector Search (RPC) -- With Retry Logic for Stability
         # ArcFace Cosine Similarity Threshold: > 0.40 is VERY strict.
-        response = supabase.rpc("match_faces", {
-            "query_embedding": embedding,
-            "match_threshold": 0.40, 
-            "match_count": 50
-        }).execute()
+        response = None
+        for attempt in range(3):
+            try:
+                response = supabase.rpc("match_faces", {
+                    "query_embedding": embedding,
+                    "match_threshold": 0.40, 
+                    "match_count": 50
+                }).execute()
+                break # Success
+            except Exception as rpc_error:
+                print(f"⚠️ RPC Attempt {attempt+1} failed: {rpc_error}")
+                if attempt == 2:
+                    raise rpc_error
+                time.sleep(0.5)
         
         matches = response.data
         
