@@ -11,7 +11,7 @@ import L from 'leaflet';
 import 'leaflet.heat';
 
 // --- CONFIG ---
-const API_URL = 'http://localhost:8000';
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 // --- ASSETS (Dark Mode Optimized) ---
 const blueMarker = new L.Icon({
@@ -95,8 +95,8 @@ const NavLink = ({ to, icon, label, active }) => (
   <Link
     to={to}
     className={`flex items-center gap-2 h-full px-2 border-b-2 transition-all font-mono text-sm tracking-wide ${active
-        ? 'border-neon-blue text-neon-blue drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]'
-        : 'border-transparent text-gray-500 hover:text-white hover:border-gray-700'
+      ? 'border-neon-blue text-neon-blue drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]'
+      : 'border-transparent text-gray-500 hover:text-white hover:border-gray-700'
       }`}
   >
     {icon}
@@ -260,8 +260,8 @@ const NeuralSearch = () => {
                   key={i}
                   onClick={() => focusLocation(match)}
                   className={`p-3 rounded border cursor-pointer transition-all ${activeMatch === match
-                      ? 'bg-neon-blue/10 border-neon-blue shadow-[0_0_10px_rgba(0,240,255,0.1)]'
-                      : 'bg-black/40 border-white/5 hover:border-white/20'
+                    ? 'bg-neon-blue/10 border-neon-blue shadow-[0_0_10px_rgba(0,240,255,0.1)]'
+                    : 'bg-black/40 border-white/5 hover:border-white/20'
                     }`}
                 >
                   <div className="flex justify-between items-start mb-1">
