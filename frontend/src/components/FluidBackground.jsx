@@ -2,11 +2,11 @@ import React from 'react';
 
 const FluidBackground = () => {
     return (
-        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#020202]">
-            {/* Aurora Blobs */}
-            <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-neon-cyan/20 rounded-full blur-[120px] animate-aurora mix-blend-screen" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-neon-purple/20 rounded-full blur-[120px] animate-aurora mix-blend-screen animation-delay-2000" />
-            <div className="absolute top-[40%] left-[40%] w-[30vw] h-[30vw] bg-neon-red/10 rounded-full blur-[100px] animate-pulse" />
+        <div className="fixed inset-0 z-0 overflow-hidden pointer-events-none bg-[#05000a]">
+            {/* Aurora Blobs - Purple Palette */}
+            <div className="absolute top-[-10%] left-[-10%] w-[60vw] h-[60vw] bg-[#6f00ff]/20 rounded-full blur-[120px] animate-aurora mix-blend-screen" />
+            <div className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-[#3b0270]/40 rounded-full blur-[120px] animate-aurora mix-blend-screen animation-delay-2000" />
+            <div className="absolute top-[30%] left-[40%] w-[40vw] h-[40vw] bg-[#e9b3fb]/10 rounded-full blur-[100px] animate-pulse" />
 
             {/* Noise Texture Overlay */}
             <div className="absolute inset-0 opacity-[0.03] mix-blend-overlay"

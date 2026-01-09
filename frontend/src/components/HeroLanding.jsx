@@ -14,9 +14,9 @@ const HeroLanding = ({ onEnter }) => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 1, ease: "easeOut" }}
                 >
-                    <p className="font-mono text-neon-cyan/80 tracking-[0.5em] text-sm mb-4">SURVEILLANCE GRID V2.0</p>
+                    <p className="font-mono text-[#e9b3fb] tracking-[0.5em] text-sm mb-4 drop-shadow-[0_0_10px_rgba(233,179,251,0.5)]">SURVEILLANCE GRID V2.0</p>
                     <h1 className="font-hero text-6xl md:text-8xl lg:text-9xl font-bold text-white tracking-tighter leading-[0.9] mix-blend-overlay">
-                        KUMBH<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-white">RAKSHAK</span>
+                        KUMBH<br /><span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6f00ff] via-[#e9b3fb] to-white drop-shadow-[0_0_30px_rgba(111,0,255,0.5)]">RAKSHAK</span>
                     </h1>
                 </motion.div>
 
@@ -38,10 +38,10 @@ const HeroLanding = ({ onEnter }) => {
                     whileTap={{ scale: 0.95 }}
                     transition={{ delay: 1.5 }}
                     onClick={onEnter}
-                    className="group relative px-12 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-4 mx-auto overflow-hidden"
+                    className="group relative px-12 py-4 bg-white/5 hover:bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center gap-4 mx-auto overflow-hidden shadow-[0_0_30px_rgba(111,0,255,0.3)] hover:shadow-[0_0_50px_rgba(111,0,255,0.6)] transition-shadow duration-500"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-r from-neon-cyan/0 via-neon-cyan/10 to-neon-cyan/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
-                    <Fingerprint className="text-neon-cyan" />
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#6f00ff]/0 via-[#6f00ff]/20 to-[#6f00ff]/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
+                    <Fingerprint className="text-[#e9b3fb]" />
                     <span className="font-hero font-bold tracking-widest text-white">ENTER SYSTEM</span>
                     <ArrowRight className="group-hover:translate-x-1 transition-transform" />
                 </motion.button>

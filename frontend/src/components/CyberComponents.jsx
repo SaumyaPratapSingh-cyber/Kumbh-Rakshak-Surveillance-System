@@ -10,15 +10,15 @@ function cn(...inputs) {
 
 // --- 1. GLASS CARD (The Building Block) ---
 export const GlassCard = ({ children, className = "", hoverEffect = true, variant = "cyber" }) => {
-    const baseStyles = "backdrop-blur-md bg-black/40 border transition-all duration-300 relative overflow-hidden p-6";
+    const baseStyles = "backdrop-blur-md bg-[#0a0510]/60 border transition-all duration-300 relative overflow-hidden p-6";
     const variants = {
-        cyber: "rounded-xl border-white/10 hover:border-neon-cyan/50 hover:shadow-[0_0_20px_rgba(0,243,255,0.1)]",
+        cyber: "rounded-xl border-white/10 hover:border-[#6f00ff]/50 hover:shadow-[0_0_20px_rgba(111,0,255,0.15)]",
         organic: "rounded-[2rem] border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:scale-[1.01]"
     };
 
     return (
         <motion.div
-            whileHover={hoverEffect && variant === 'cyber' ? { scale: 1.01, boxShadow: "0 0 20px rgba(0, 243, 255, 0.15)" } : {}}
+            whileHover={hoverEffect && variant === 'cyber' ? { scale: 1.01, boxShadow: "0 0 20px rgba(111, 0, 255, 0.15)" } : {}}
             className={clsx(baseStyles, variants[variant] || variants.cyber, className)}
         >
             {/* Noise Texture for Organic Variant */}
@@ -30,7 +30,7 @@ export const GlassCard = ({ children, className = "", hoverEffect = true, varian
 
             {/* Cyber Hover Glow */}
             {hoverEffect && variant === 'cyber' && (
-                <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute inset-0 bg-gradient-to-br from-[#6f00ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             )}
             <div className="relative z-10">{children}</div>
         </motion.div>
@@ -38,11 +38,11 @@ export const GlassCard = ({ children, className = "", hoverEffect = true, varian
 };
 
 // --- 2. NEON BUTTON (Primary & Secondary) ---
-export const NeonButton = ({ children, onClick, variant = "primary", icon: Icon, className = "", type = "button" }) => {
+export const NeonButton = ({ children, onClick, variant = "primary", icon: Icon, className = "", type = "button", ...props }) => {
     const baseStyles = "relative px-6 py-3 font-orbitron font-bold tracking-wider transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group rounded-full";
 
     const variants = {
-        primary: "bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/50 hover:bg-neon-cyan hover:text-black hover:shadow-[0_0_20px_rgba(0,243,255,0.5)]",
+        primary: "bg-[#6f00ff]/10 text-[#e9b3fb] border border-[#6f00ff]/50 hover:bg-[#6f00ff] hover:text-white hover:shadow-[0_0_20px_rgba(111,0,255,0.5)]",
         danger: "bg-critical-red/10 text-critical-red border border-critical-red/50 hover:bg-critical-red hover:text-white hover:shadow-[0_0_20px_rgba(255,0,60,0.5)]",
         ghost: "bg-transparent text-white/70 border border-white/10 hover:border-white/30 hover:bg-white/5",
         organic: "bg-white/10 text-white border-0 hover:bg-white/20 backdrop-blur-md"

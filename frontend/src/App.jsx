@@ -406,109 +406,108 @@ function App() {
   ];
 
   return (
-    <div className="bg-cyber-black text-white font-sans overflow-hidden h-screen w-screen selection:bg-neon-cyan selection:text-black">
-      <AnimatePresence mode="wait">
-        {showLanding ? (
+    <div className="bg-cyber-black text-white font-sans overflow-hidden h-screen w-screen selection:bg-[#e9b3fb] selection:text-black relative">
+
+      {/* 1. CINEMATIC BACKGROUND (Always Visible) */}
+      <FluidBackground />
+
+      {/* 2. HERO LANDING OVERLAY */}
+      <AnimatePresence>
+        {showLanding && (
           <motion.div
             key="landing"
             exit={{ opacity: 0, scale: 1.1, filter: 'blur(20px)' }}
             transition={{ duration: 1.5, ease: "easeInOut" }}
-            className="fixed inset-0 z-50"
+            className="fixed inset-0 z-[100] bg-cyber-black"
           >
             <HeroLanding onEnter={() => setShowLanding(false)} />
           </motion.div>
-        ) : (
-          <motion.div
-            key="app"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 1 }}
-            className="relative h-full w-full flex flex-col"
-          >
-            {/* 1. CINEMATIC BACKGROUND LAYER */}
-            <div className="absolute inset-0 z-0">
-              <FluidBackground />
-            </div>
-
-            {/* 2. TOP BAR (Minimal) */}
-            <header className="relative z-20 flex justify-between items-center p-6 lg:p-10 pointer-events-none">
-              <div className="flex items-center gap-4 pointer-events-auto">
-                <Shield className="w-10 h-10 text-white animate-pulse-fast drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
-                <div>
-                  <h1 className="font-hero text-2xl lg:text-3xl tracking-tighter leading-none">KUMBH<span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-white">RAKSHAK</span></h1>
-                  <p className="font-mono text-[10px] text-neon-cyan tracking-[0.3em]">SURVEILLANCE GRID ACTIVE</p>
-                </div>
-              </div>
-
-              <div className="hidden lg:flex items-center gap-6 font-mono text-xs text-white/50 bg-white/5 px-6 py-2 rounded-full backdrop-blur-md border border-white/10">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse" />
-                  <span>SYSTEM ONLINE</span>
-                </div>
-                <span>|</span>
-                <span>LAT: 25.4358° N</span>
-              </div>
-            </header>
-
-            {/* 3. MAIN CONTENT AREA */}
-            <main className="flex-1 relative z-10 overflow-hidden px-4 lg:px-12 pb-24 lg:pb-10 pt-4">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={activeTab}
-                  initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
-                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-                  exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
-                  transition={{ duration: 0.5, ease: "circOut" }}
-                  className="h-full overflow-y-auto custom-scrollbar pr-2"
-                >
-                  {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
-                  {activeTab === 'search' && <NeuralSearch />}
-                  {activeTab === 'live' && <LiveSurveillance />}
-                  {activeTab === 'nodes' && (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center font-mono opacity-50 space-y-4">
-                        <div className="relative">
-                          <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full" />
-                          <Cpu size={64} className="mx-auto text-white relative z-10" />
-                        </div>
-                        <h2 className="font-hero text-2xl">RESTRICTED AREA</h2>
-                        <p className="text-xs tracking-widest text-neon-cyan">CLEARANCE LEVEL 5 REQUIRED</p>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              </AnimatePresence>
-            </main>
-
-            {/* 4. FLOATING BOTTOM LOCK (Navigation) */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-4">
-              <nav className="glass-panel-organic flex items-center justify-between p-2 lg:p-3 overflow-hidden">
-                {navItems.map((item) => {
-                  const isActive = activeTab === item.id;
-                  return (
-                    <button
-                      key={item.id}
-                      onClick={() => setActiveTab(item.id)}
-                      className={`relative group flex flex-col items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-[1.5rem] transition-all duration-500
-                         ${isActive ? 'bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'text-white/50 hover:text-white hover:bg-white/10'}
-                       `}
-                    >
-                      <item.icon size={24} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
-                      {isActive && <div className="absolute -bottom-1 w-1 h-1 bg-black rounded-full" />}
-
-                      {/* Tooltip */}
-                      <span className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur">
-                        {item.label}
-                      </span>
-                    </button>
-                  )
-                })}
-              </nav>
-            </div>
-
-          </motion.div>
         )}
       </AnimatePresence>
+
+      {/* 3. MAIN APP (Mounts immediately but hidden behind Landing) */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: showLanding ? 0 : 1 }}
+        transition={{ delay: 0.5, duration: 1 }}
+        className="relative h-full w-full flex flex-col z-10"
+      >
+        {/* TOP BAR */}
+        <header className="relative z-20 flex justify-between items-center p-6 lg:p-10 pointer-events-none transition-opacity duration-1000">
+          <div className="flex items-center gap-4 pointer-events-auto">
+            <Shield className="w-10 h-10 text-[#6f00ff] animate-pulse-fast drop-shadow-[0_0_15px_rgba(111,0,255,0.5)]" />
+            <div>
+              <h1 className="font-hero text-2xl lg:text-3xl tracking-tighter leading-none text-white">KUMBH<span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6f00ff] to-[#e9b3fb]">RAKSHAK</span></h1>
+              <p className="font-mono text-[10px] text-[#e9b3fb] tracking-[0.3em]">SURVEILLANCE GRID ACTIVE</p>
+            </div>
+          </div>
+
+          <div className="hidden lg:flex items-center gap-6 font-mono text-xs text-white/50 bg-white/5 px-6 py-2 rounded-full backdrop-blur-md border border-white/10">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-[#00ff9d] rounded-full animate-pulse" />
+              <span>SYSTEM ONLINE</span>
+            </div>
+            <span>|</span>
+            <span>LAT: 25.4358° N</span>
+          </div>
+        </header>
+
+        {/* MAIN CONTENT AREA */}
+        <main className="flex-1 relative z-10 overflow-hidden px-4 lg:px-12 pb-24 lg:pb-10 pt-4">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+              animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+              exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+              transition={{ duration: 0.5, ease: "circOut" }}
+              className="h-full overflow-y-auto custom-scrollbar pr-2"
+            >
+              {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
+              {activeTab === 'search' && <NeuralSearch />}
+              {activeTab === 'live' && <LiveSurveillance />}
+              {activeTab === 'nodes' && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center font-mono opacity-50 space-y-4">
+                    <div className="relative">
+                      <div className="absolute inset-0 bg-[#6f00ff]/20 blur-3xl rounded-full" />
+                      <Cpu size={64} className="mx-auto text-white relative z-10" />
+                    </div>
+                    <h2 className="font-hero text-2xl">RESTRICTED AREA</h2>
+                    <p className="text-xs tracking-widest text-[#e9b3fb]">CLEARANCE LEVEL 5 REQUIRED</p>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </main>
+
+        {/* FLOATING BOTTOM DOCK */}
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-4">
+          <nav className="glass-panel-organic flex items-center justify-between p-2 lg:p-3 overflow-hidden bg-[#0a0510]/80 border-[#3b0270]/50 backdrop-blur-2xl">
+            {navItems.map((item) => {
+              const isActive = activeTab === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setActiveTab(item.id)}
+                  className={`relative group flex flex-col items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-[1.5rem] transition-all duration-500
+                      ${isActive ? 'bg-[#6f00ff] text-white shadow-[0_0_30px_rgba(111,0,255,0.4)]' : 'text-white/50 hover:text-white hover:bg-white/10'}
+                    `}
+                >
+                  <item.icon size={24} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                  {isActive && <div className="absolute -bottom-1 w-1 h-1 bg-white rounded-full" />}
+
+                  {/* Tooltip */}
+                  <span className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur border border-white/10">
+                    {item.label}
+                  </span>
+                </button>
+              )
+            })}
+          </nav>
+        </div>
+      </motion.div>
     </div>
   );
 }

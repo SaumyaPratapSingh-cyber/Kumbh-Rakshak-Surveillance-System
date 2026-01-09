@@ -7,15 +7,14 @@ export default {
     theme: {
         extend: {
             colors: {
-                'cyber-black': '#020202',
-                'void-gray': '#09090b',
-                'tech-white': '#e2e8f0',
-                'muted-tech': '#94a3b8',
-                'neon-cyan': '#00f3ff',
-                'hologram-blue': '#2d8cf0',
+                'cyber-black': '#05000a', // Deepest Purple-Black from palette
+                'glass-dark': 'rgba(10, 0, 20, 0.6)',
+                'neon-cyan': '#e9b3fb', // Remapped to LAVENDER (Accent) for easy refactor
+                'neon-purple': '#6f00ff', // PRIMARY VIVID PURPLE
+                'deep-purple': '#3b0270', // SECONDARY DEEP
+                'tech-white': '#fff1f1', // PALE WHITE
                 'critical-red': '#ff003c',
-                'warning-amber': '#fcee0a',
-                'glass-dark': 'rgba(0, 0, 0, 0.6)',
+                'muted-tech': '#94a3b8',
             },
             fontFamily: {
                 sans: ['Space Grotesk', 'sans-serif'],

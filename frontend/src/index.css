@@ -6,7 +6,7 @@
 
 @layer base {
   body {
-    @apply bg-cyber-black text-tech-white font-sans antialiased overflow-x-hidden selection:bg-neon-cyan selection:text-black;
+    @apply bg-cyber-black text-tech-white font-sans antialiased overflow-x-hidden selection:bg-[#e9b3fb] selection:text-black;
   }
 }
 
