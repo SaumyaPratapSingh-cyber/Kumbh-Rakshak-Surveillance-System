@@ -14,7 +14,22 @@ import { GlassCard, NeonButton, HoloBadge, TechInput, SectionHeader } from './co
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Safe Supabase Initialization
+let supabase = null;
+let supabaseError = null;
+
+if (!SUPABASE_URL || !SUPABASE_KEY) {
+  console.warn("⚠️ Supabase Credentials Missing! App running in limited mode.");
+  supabaseError = "VITE_SUPABASE_URL and VITE_SUPABASE_KEY must be set in Environment Variables.";
+} else {
+  try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+  } catch (e) {
+    console.error("Supabase Init Error:", e);
+    supabaseError = e.message;
+  }
+}
 
 // Fix Leaflet Icons
 import L from 'leaflet';
@@ -22,6 +37,21 @@ import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 let DefaultIcon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
 L.Marker.prototype.options.icon = DefaultIcon;
+
+// Error Fallback Component
+const CrashScreen = ({ error }) => (
+  <div className="h-screen w-screen bg-black text-red-500 font-mono flex flex-col items-center justify-center p-8 text-center">
+    <AlertTriangle size={64} className="mb-4 animate-pulse" />
+    <h1 className="text-3xl font-bold mb-4">SYSTEM CRITICAL FAILURE</h1>
+    <div className="bg-red-900/20 border border-red-500/50 p-6 rounded-lg max-w-2xl">
+      <p className="text-xl mb-4">The interface could not load.</p>
+      <code className="block bg-black p-4 rounded text-sm text-left overflow-auto">
+        ERROR: {error}
+      </code>
+    </div>
+    <p className="mt-8 text-gray-500">Please check Vercel Environment Variables.</p>
+  </div>
+);
 
 // --- SUB-COMPONENTS ---
 
@@ -37,18 +67,31 @@ const Dashboard = ({ setActiveTab }) => {
   }, []);
 
   const fetchStats = async () => {
-    // Mocking real stats for visual demo if DB is empty
-    const { count } = await supabase.from('sightings').select('*', { count: 'exact', head: true });
-    const { count: nodeCount } = await supabase.from('camera_nodes').select('*', { count: 'exact', head: true });
+    // If Supabase is missing, use mock data
+    if (!supabase) {
+      setStats({
+        total_sightings: 124,
+        active_nodes: 8,
+        alerts_24h: 3
+      });
+      return;
+    }
 
-    setStats({
-      total_sightings: count || 0,
-      active_nodes: nodeCount || 0,
-      alerts_24h: Math.floor(Math.random() * 5) // Mock alert count
-    });
+    try {
+      const { count } = await supabase.from('sightings').select('*', { count: 'exact', head: true });
+      const { count: nodeCount } = await supabase.from('camera_nodes').select('*', { count: 'exact', head: true });
 
-    const { data } = await supabase.from('sightings').select('*').order('created_at', { ascending: false }).limit(5);
-    if (data) setRecentSightings(data);
+      setStats({
+        total_sightings: count || 0,
+        active_nodes: nodeCount || 0,
+        alerts_24h: Math.floor(Math.random() * 5) // Mock alert count
+      });
+
+      const { data } = await supabase.from('sightings').select('*').order('created_at', { ascending: false }).limit(5);
+      if (data) setRecentSightings(data);
+    } catch (err) {
+      console.error("Stats Fetch Error:", err);
+    }
   };
 
   return (
@@ -346,6 +389,10 @@ const LiveSurveillance = () => {
 
 // --- APP SHELL (Layout) ---
 function App() {
+  if (supabaseError) {
+    return <CrashScreen error={supabaseError} />;
+  }
+
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const navItems = [
