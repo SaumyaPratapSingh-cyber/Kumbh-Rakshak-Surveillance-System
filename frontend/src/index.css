@@ -1,22 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-@layer utilities {
-  .glass-panel {
-    @apply backdrop-blur-xl bg-gradient-to-br from-gray-900/80 to-black/80 border border-white/10 shadow-glass;
+@layer base {
+  body {
+    @apply bg-cyber-black text-tech-white font-sans antialiased overflow-x-hidden selection:bg-neon-cyan selection:text-black;
+    background-image:
+      radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.03) 0%, transparent 50%),
+      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
   }
 }
 
-body {
-  background-color: #050505;
-  /* deep-space */
-  background-image:
-    linear-gradient(rgba(0, 86, 210, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 86, 210, 0.03) 1px, transparent 1px);
-  background-size: 40px 40px;
-  color: #E0E0E0;
-  -webkit-font-smoothing: antialiased;
+@layer utilities {
+  .glass-panel {
+    @apply backdrop-blur-md bg-glass-dark border border-white/5 shadow-glass-md;
+  }
+
+  .text-glow {
+    text-shadow: 0 0 10px rgba(0, 243, 255, 0.5);
+  }
+
+  .text-glow-red {
+    text-shadow: 0 0 10px rgba(255, 0, 60, 0.5);
+  }
+
+  /* Holographic Border Effect */
+  .holographic-border {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .holographic-border::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 50%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.3), transparent);
+    transform: skewX(-25deg);
+    animation: hologram-shine 3s infinite;
+    pointer-events: none;
+  }
+
+  @keyframes hologram-shine {
+    0% {
+      left: -100%;
+    }
+
+    20% {
+      left: 200%;
+    }
+
+    100% {
+      left: 200%;
+    }
+  }
+
+  /* Scanline Overlay */
+  .scanline {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .scanline::after {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+      linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+    z-index: 2;
+    background-size: 100% 2px, 3px 100%;
+    pointer-events: none;
+    animation: flicker 0.15s infinite;
+  }
 }
 
 /* Custom Scrollbar */
@@ -26,36 +91,32 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #000;
+  background: #020202;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #333;
-  border-radius: 3px;
-  border: 1px solid #000;
+  background: #1a1a1a;
+  border: 1px solid #333;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00F0FF;
+  background: #00f3ff;
+  box-shadow: 0 0 10px #00f3ff;
 }
 
-/* Leaflet Map Dark Mode Override (for non-satellite tiles if used) */
+/* Leaflet Overrides */
 .leaflet-container {
-  background: #000;
-  font-family: 'JetBrains Mono', monospace;
+  font-family: 'Space Mono', monospace !important;
 }
 
-/* Scanline Effect */
-.scanline::before {
-  content: " ";
-  display: block;
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  right: 0;
-  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-  z-index: 2;
-  background-size: 100% 2px, 3px 100%;
-  pointer-events: none;
+.leaflet-popup-content-wrapper {
+  background: rgba(0, 0, 0, 0.9) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid #00f3ff;
+  border-radius: 0px !important;
+  color: #fff !important;
+}
+
+.leaflet-popup-tip {
+  background: #00f3ff !important;
 }

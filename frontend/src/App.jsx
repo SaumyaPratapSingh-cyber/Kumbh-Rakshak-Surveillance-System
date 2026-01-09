@@ -1,328 +1,240 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { BrowserRouter as Router, Routes, Route, Link, useLocation } from 'react-router-dom';
+import { createClient } from '@supabase/supabase-js';
 import {
-  Shield, Search, Map as MapIcon, Activity, Grid,
-  Upload, Bell, User, Menu, X, CheckCircle, AlertTriangle, Users, Camera, Radio
+  Shield, Search, Activity, Map as MapIcon, Camera, AlertTriangle,
+  Menu, X, LayoutGrid, Cpu, Layers, Radio, Crosshair, User, Zap
 } from 'lucide-react';
-import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
-import 'leaflet.heat';
+import { motion, AnimatePresence } from 'framer-motion';
+import { GlassCard, NeonButton, HoloBadge, TechInput, SectionHeader } from './components/CyberComponents';
 
-// --- CONFIG ---
+// --- CONFIGURATION ---
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-// --- ASSETS (Dark Mode Optimized) ---
-const blueMarker = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/markers/2x/blue.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
-L.Marker.prototype.options.icon = blueMarker;
+// Fix Leaflet Icons
+import L from 'leaflet';
+import icon from 'leaflet/dist/images/marker-icon.png';
+import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+let DefaultIcon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
+L.Marker.prototype.options.icon = DefaultIcon;
 
-const targetIcon = new L.Icon({
-  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/markers/2x/red.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
-  iconSize: [25, 41],
-  iconAnchor: [12, 41],
-  popupAnchor: [1, -34],
-  shadowSize: [41, 41]
-});
+// --- SUB-COMPONENTS ---
 
-// --- HELPER COMPONENT ---
-const MapController = ({ center, zoom }) => {
-  const map = useMap();
-  useEffect(() => {
-    if (center) {
-      map.flyTo(center, zoom || 16, { duration: 1.5 });
-    }
-  }, [center, zoom, map]);
-  return null;
-};
-
-// --- LAYOUT ---
-const MainLayout = ({ children }) => {
-  const location = useLocation();
-  const isActive = (path) => location.pathname === path;
-
-  return (
-    <div className="min-h-screen font-sans text-slate-text bg-[#050505] selection:bg-neon-green selection:text-black">
-      {/* Top Navigation Bar */}
-      <header className="h-16 glass-panel fixed top-0 w-full z-50 flex items-center justify-between px-6 border-b border-white/10">
-        <div className="flex items-center gap-3">
-          <Shield className="text-neon-blue" size={28} />
-          <h1 className="text-xl font-bold text-white tracking-tight font-mono">
-            KUMBH<span className="text-neon-blue">RAKSHAK</span> <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-neon-green ml-1">V2.0</span>
-          </h1>
-        </div>
-
-        <nav className="flex items-center gap-8 h-full">
-          <NavLink to="/" icon={<Activity size={18} />} label="DASHBOARD" active={isActive('/')} />
-          <NavLink to="/search" icon={<Search size={18} />} label="NEURAL SEARCH" active={isActive('/search')} />
-          <NavLink to="/live" icon={<Grid size={18} />} label="SURVEILLANCE" active={isActive('/live')} />
-        </nav>
-
-        <div className="flex items-center gap-4">
-          <div className="relative cursor-pointer group">
-            <Bell size={20} className="text-gray-400 group-hover:text-neon-blue transition-colors" />
-            <span className="absolute top-0 right-0 w-2 h-2 bg-alert-red rounded-full shadow-[0_0_10px_rgba(255,42,42,0.8)] animate-pulse"></span>
-          </div>
-          <div className="flex items-center gap-3 border-l border-white/10 pl-4">
-            <div className="text-right">
-              <div className="text-xs font-bold text-neon-green leading-none font-mono">OFFICER.SINGH</div>
-              <div className="text-[10px] text-gray-500 font-mono tracking-widest">CMD_CENTER_01</div>
-            </div>
-            <div className="w-8 h-8 rounded bg-gray-900 border border-neon-blue/30 text-neon-blue flex items-center justify-center font-bold font-mono text-xs">
-              OS
-            </div>
-          </div>
-        </div>
-      </header>
-
-      {/* Main Content Area */}
-      <main className="pt-20 px-6 pb-6 max-w-[1920px] mx-auto">
-        {children}
-      </main>
-    </div>
-  );
-};
-
-const NavLink = ({ to, icon, label, active }) => (
-  <Link
-    to={to}
-    className={`flex items-center gap-2 h-full px-2 border-b-2 transition-all font-mono text-sm tracking-wide ${active
-      ? 'border-neon-blue text-neon-blue drop-shadow-[0_0_5px_rgba(0,240,255,0.5)]'
-      : 'border-transparent text-gray-500 hover:text-white hover:border-gray-700'
-      }`}
-  >
-    {icon}
-    <span>{label}</span>
-  </Link>
-);
-
-// --- PAGES ---
-
-// 1. DASHBOARD
-const Dashboard = () => {
-  const [stats, setStats] = useState({ indexed_faces: 0, active_nodes: 0 });
+// 1. DASHBOARD COMPONENT (Bento Grid)
+const Dashboard = ({ setActiveTab }) => {
+  const [stats, setStats] = useState({ total_sightings: 0, active_nodes: 0, alerts_24h: 0 });
+  const [recentSightings, setRecentSightings] = useState([]);
 
   useEffect(() => {
-    axios.get(`${API_URL}/stats`).then(res => setStats(res.data)).catch(console.error);
+    fetchStats();
+    const interval = setInterval(fetchStats, 5000);
+    return () => clearInterval(interval);
   }, []);
 
+  const fetchStats = async () => {
+    // Mocking real stats for visual demo if DB is empty
+    const { count } = await supabase.from('sightings').select('*', { count: 'exact', head: true });
+    const { count: nodeCount } = await supabase.from('camera_nodes').select('*', { count: 'exact', head: true });
+
+    setStats({
+      total_sightings: count || 0,
+      active_nodes: nodeCount || 0,
+      alerts_24h: Math.floor(Math.random() * 5) // Mock alert count
+    });
+
+    const { data } = await supabase.from('sightings').select('*').order('created_at', { ascending: false }).limit(5);
+    if (data) setRecentSightings(data);
+  };
+
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
-      {/* Welcome Section */}
-      <div className="flex flex-col gap-2 relative overflow-hidden rounded-2xl p-8 border border-white/10 bg-gradient-to-r from-blue-900/20 to-transparent">
-        <div className="absolute top-0 left-0 w-1 h-full bg-neon-blue shadow-[0_0_15px_#00F0FF]"></div>
-        <h1 className="text-4xl font-bold text-white font-mono tracking-tighter">
-          WELCOME TO <span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-blue to-neon-green">KUMBH RAKSHAK</span>
-        </h1>
-        <p className="text-gray-400 max-w-2xl font-mono text-sm leading-relaxed">
-          AI-Powered Crowd Management & Surveillance System designed for the <strong>Mahakumbh 2025</strong>.
-          Real-time monitoring, facial recognition, and crowd density analytics to ensure safety and security.
-        </p>
+    <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+      <SectionHeader title="Mission Control" subtitle="System Overview" />
+
+      {/* Top Stats Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <GlassCard className="flex items-center justify-between">
+          <div>
+            <p className="text-muted-tech font-mono text-xs uppercase tracking-widest">Total Sightings</p>
+            <h3 className="text-4xl font-orbitron font-bold text-neon-cyan mt-2">{stats.total_sightings}</h3>
+          </div>
+          <Activity className="text-neon-cyan/50 w-12 h-12" />
+        </GlassCard>
+
+        <GlassCard className="flex items-center justify-between">
+          <div>
+            <p className="text-muted-tech font-mono text-xs uppercase tracking-widest">Active Nodes</p>
+            <h3 className="text-4xl font-orbitron font-bold text-neon-green mt-2">{stats.active_nodes}</h3>
+          </div>
+          <Zap className="text-neon-green/50 w-12 h-12" />
+        </GlassCard>
+
+        <GlassCard className="flex items-center justify-between border-critical-red/30">
+          <div>
+            <p className="text-muted-tech font-mono text-xs uppercase tracking-widest">Threats Det.</p>
+            <h3 className="text-4xl font-orbitron font-bold text-critical-red mt-2">{stats.alerts_24h}</h3>
+          </div>
+          <AlertTriangle className="text-critical-red/50 w-12 h-12 animate-pulse" />
+        </GlassCard>
       </div>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-4 gap-6">
-        <StatCard icon={<Users className="text-neon-blue" size={24} />} title="Total Footfall" value="124,592" sub="Daily Estimate" />
-        <StatCard icon={<AlertTriangle className="text-alert-red" size={24} />} title="Missing Reports" value="3" sub="Active Cases" trend />
-        <StatCard icon={<CheckCircle className="text-neon-green" size={24} />} title="Reunited" value="89" sub="This Week" />
-        <StatCard icon={<Camera className="text-gray-300" size={24} />} title="Active Cameras" value={stats.active_nodes || "12"} sub="Grid Status" />
-      </div>
+      {/* Main Content Grid (Masonry-ish) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[500px]">
+        {/* Large Map Preview */}
+        <GlassCard className="lg:col-span-2 relative p-0 overflow-hidden group">
+          <div className="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur px-3 py-1 border border-white/10 rounded-full flex items-center gap-2">
+            <span className="w-2 h-2 bg-neon-green rounded-full animate-pulse" />
+            <span className="text-xs font-mono text-white">LIVE GEOSPATIAL GRID</span>
+          </div>
+          {/* Map Placeholder or Real Map */}
+          <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/81.8463,25.4358,12,0/800x600?access_token=YOUR_TOKEN')] bg-cover opacity-50 grayscale group-hover:grayscale-0 transition-all duration-700" />
+          <div className="absolute inset-0 flex items-center justify-center">
+            <NeonButton onClick={() => setActiveTab('search')} icon={MapIcon}>Open Tactical Map</NeonButton>
+          </div>
+        </GlassCard>
 
-      <div className="grid grid-cols-3 gap-6 h-[500px]">
-        {/* Map Section */}
-        <div className="col-span-2 glass-panel rounded-xl overflow-hidden relative flex flex-col border border-white/10 shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-          <div className="p-4 border-b border-white/10 flex justify-between items-center bg-black/40 backdrop-blur-md">
-            <h2 className="font-bold text-white font-mono text-sm tracking-wider flex items-center gap-2">
-              <Activity size={16} className="text-neon-green" /> REAL-TIME DENSITY
-            </h2>
-            <div className="flex gap-2 text-[10px] font-mono">
-              <span className="px-3 py-1 bg-neon-blue/10 text-neon-blue rounded border border-neon-blue/20 shadow-[0_0_10px_rgba(0,240,255,0.1)]">LIVE SATELLITE</span>
-            </div>
+        {/* Live Feed Feed */}
+        <GlassCard className="overflow-hidden flex flex-col">
+          <h3 className="font-orbitron text-lg mb-4 flex items-center gap-2"><Radio size={16} /> Recent Intercepts</h3>
+          <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2">
+            {recentSightings.map((sighting, i) => (
+              <div key={i} className="flex items-center gap-3 p-2 bg-white/5 rounded-lg border border-white/5 hover:border-neon-cyan/50 transition-colors">
+                <div className="w-10 h-10 bg-black rounded overflow-hidden">
+                  {/* Fallback avatar if no image */}
+                  <User className="w-full h-full p-2 text-gray-500" />
+                </div>
+                <div>
+                  <p className="font-mono text-xs text-neon-cyan">CAM-{sighting.cam_id?.substring(0, 4)}</p>
+                  <p className="text-[10px] text-gray-400">{new Date(sighting.created_at).toLocaleTimeString()}</p>
+                </div>
+              </div>
+            ))}
+            {recentSightings.length === 0 && <p className="text-center text-gray-500 text-xs mt-10">No recent activity logged.</p>}
           </div>
-          <div className="flex-1 relative">
-            <MapContainer center={[25.4358, 81.8463]} zoom={15} className="w-full h-full bg-[#050505]" zoomControl={false}>
-              <TileLayer
-                attribution='&copy; Esri'
-                url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-              />
-              <HeatmapLayer />
-            </MapContainer>
-          </div>
-        </div>
-
-        {/* Alerts List */}
-        <div className="glass-panel rounded-xl border border-white/10 p-5 flex flex-col shadow-[0_0_30px_rgba(0,0,0,0.5)]">
-          <h2 className="font-bold text-gray-200 mb-4 font-mono text-sm uppercase tracking-widest flex items-center gap-2">
-            <Bell size={16} className="text-alert-red" /> Recent Alerts
-          </h2>
-          <div className="space-y-3 overflow-y-auto pr-2 custom-scrollbar">
-            <AlertItem type="critical" message="Child spotted at Gate 4 (CCTV-04)" time="2 mins ago" />
-            <AlertItem type="warning" message="High Crowd Density at Sangam Ghat" time="15 mins ago" />
-            <AlertItem type="info" message="Shift Change: Sector 2" time="1 hour ago" />
-            {[1, 2, 3].map(i => <AlertItem key={i} type="info" message="System Check: Node Synced" time="2 hours ago" />)}
-          </div>
-        </div>
+        </GlassCard>
       </div>
     </div>
   );
 };
 
-// 2. NEURAL SEARCH
+// 2. NEURAL SEARCH COMPONENT
 const NeuralSearch = () => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState([]);
-  const [mapTrajectory, setMapTrajectory] = useState([]);
-  const [mapCenter, setMapCenter] = useState([25.4358, 81.8463]);
-  const [activeMatch, setActiveMatch] = useState(null);
+  const [queryImage, setQueryImage] = useState(null);
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [mapCenter, setMapCenter] = useState([25.4358, 81.8463]); // Prayagraj
 
-  const handleSearch = async () => {
-    if (!selectedFile) return;
-    setIsSearching(true);
+  // Component to fly map to new center
+  const MapUpdater = ({ center }) => {
+    const map = useMap();
+    useEffect(() => { map.flyTo(center, 14); }, [center, map]);
+    return null;
+  };
+
+  const handleSearch = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setQueryImage(URL.createObjectURL(file));
+    setLoading(true);
+
     const formData = new FormData();
-    formData.append('file', selectedFile);
+    formData.append("file", file);
 
     try {
       const res = await axios.post(`${API_URL}/search/biometric`, formData);
-      const matches = res.data.matches;
-      setSearchResults(matches);
-      const sorted = [...matches].sort((a, b) => new Date(a.seen_at) - new Date(b.seen_at));
-      setMapTrajectory(sorted.map(m => [m.lat, m.lon]));
-      if (matches.length > 0) {
-        setMapCenter([matches[0].lat, matches[0].lon]);
-        setActiveMatch(matches[0]);
+      setResults(res.data.matches);
+      if (res.data.matches.length > 0) {
+        setMapCenter([res.data.matches[0].lat, res.data.matches[0].lon]);
       }
     } catch (err) {
-      alert("Search Error: " + (err.response?.data?.detail || err.message));
+      alert("Search Failed: " + err.message);
     } finally {
-      setIsSearching(false);
+      setLoading(false);
     }
   };
 
-  const focusLocation = (match) => {
-    setMapCenter([match.lat, match.lon]);
-    setActiveMatch(match);
-  };
-
   return (
-    <div className="grid grid-cols-12 gap-6 h-[calc(100vh-120px)] animate-in slide-in-from-bottom-4 duration-500">
-      {/* Left Sidebar: Input & Results List */}
-      <div className="col-span-4 flex flex-col gap-6 h-full">
-        {/* Input Panel */}
-        <div className="glass-panel rounded-xl p-6 flex flex-col items-center justify-center shrink-0 border border-white/5">
-          <div className="w-full h-48 border-2 border-dashed border-gray-700 hover:border-neon-blue/50 rounded-xl flex flex-col items-center justify-center bg-black/40 transition-colors cursor-pointer relative mb-4 group">
-            <input
-              type="file"
-              onChange={(e) => setSelectedFile(e.target.files[0])}
-              className="absolute inset-0 opacity-0 cursor-pointer z-10"
-            />
-            {selectedFile ? (
-              <img src={URL.createObjectURL(selectedFile)} className="w-full h-full object-contain p-2 opacity-80 group-hover:opacity-100" />
-            ) : (
-              <>
-                <Upload className="text-gray-600 mb-2 group-hover:text-neon-blue transition-colors" size={32} />
-                <p className="text-sm text-gray-500 font-mono">DROP SUBJECT IMAGE</p>
-              </>
-            )}
-          </div>
+    <div className="h-[calc(100vh-100px)] grid grid-cols-1 lg:grid-cols-12 gap-6 animate-in slide-in-from-right duration-500">
 
-          <button
-            onClick={handleSearch}
-            disabled={!selectedFile || isSearching}
-            className="w-full py-3 bg-cyber-blue hover:bg-neon-blue hover:text-black text-white font-bold rounded-lg shadow-[0_0_15px_rgba(0,86,210,0.4)] transition-all flex items-center justify-center gap-2 font-mono uppercase tracking-widest disabled:opacity-50 disabled:shadow-none"
-          >
-            {isSearching ? <span className="animate-pulse">SCANNING VECTOR DB...</span> : 'INITIATE TRACKING'}
-          </button>
-        </div>
+      {/* LEFT PANEL: UPLOAD & RESULTS */}
+      <div className="lg:col-span-4 space-y-6 flex flex-col h-full">
+        <GlassCard className="p-6 shrink-0">
+          <SectionHeader title="Target Acquisition" />
+          <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-neon-cyan transition-colors relative group">
+            <input type="file" onChange={handleSearch} className="absolute inset-0 opacity-0 cursor-pointer" />
+            <div className="flex flex-col items-center gap-4">
+              <div className="w-16 h-16 rounded-full bg-neon-cyan/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                <Search className="w-8 h-8 text-neon-cyan" />
+              </div>
+              <p className="font-mono text-sm text-muted-tech">DROP TARGET VISUAL HERE</p>
+            </div>
+            {/* Scanning Effect Overlay */}
+            {loading && <div className="absolute inset-0 bg-neon-cyan/10 animate-pulse rounded-xl" />}
+          </div>
+        </GlassCard>
 
         {/* Results List */}
-        <div className="glass-panel rounded-xl border border-white/5 flex-1 overflow-hidden flex flex-col">
-          <div className="p-4 border-b border-white/10 bg-black/20">
-            <h3 className="font-bold text-gray-300 font-mono text-sm uppercase">Match Results ({searchResults.length})</h3>
-          </div>
+        <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
+          {loading && <div className="text-center font-mono text-neon-cyan animate-pulse">INITIATING DEEPFACE SCAN...</div>}
 
-          <div className="overflow-y-auto p-4 space-y-3 flex-1 custom-scrollbar">
-            {searchResults.length === 0 && !isSearching ? (
-              <div className="text-center text-gray-600 mt-10 font-mono text-xs">
-                AWAITING NEURAL INPUT...
+          {results.map((match, i) => (
+            <GlassCard key={i} className="flex items-center gap-4 p-4 border-l-4 border-neon-cyan hover:bg-white/5 cursor-pointer" onClick={() => setMapCenter([match.lat, match.lon])}>
+              <div className="w-12 h-12 bg-black rounded border border-white/10 flex items-center justify-center text-lg font-bold text-white/50">
+                {(match.similarity_score)}%
               </div>
-            ) : (
-              searchResults.map((match, i) => (
-                <div
-                  key={i}
-                  onClick={() => focusLocation(match)}
-                  className={`p-3 rounded border cursor-pointer transition-all ${activeMatch === match
-                    ? 'bg-neon-blue/10 border-neon-blue shadow-[0_0_10px_rgba(0,240,255,0.1)]'
-                    : 'bg-black/40 border-white/5 hover:border-white/20'
-                    }`}
-                >
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-bold text-gray-200 text-sm font-mono">{match.cam_id}</span>
-                    <span className="text-[10px] bg-green-900/50 text-green-400 px-1.5 py-0.5 rounded font-mono border border-green-500/20">
-                      {(match.score * 100).toFixed(1)}%
-                    </span>
-                  </div>
-                  <div className="text-[10px] text-gray-500 flex items-center gap-2 font-mono">
-                    <span>{new Date(match.seen_at).toLocaleTimeString()}</span>
-                    <span className="flex items-center gap-0.5 text-neon-blue"><MapIcon size={10} /> LOC</span>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
+              <div>
+                <h4 className="font-orbitron text-white">{match.cam_name}</h4>
+                <p className="font-mono text-xs text-muted-tech flex items-center gap-2">
+                  <MapIcon size={12} /> {match.lat.toFixed(4)}, {match.lon.toFixed(4)}
+                </p>
+                <p className="text-[10px] text-gray-500 mt-1">{new Date(match.created_at).toLocaleString()}</p>
+              </div>
+            </GlassCard>
+          ))}
         </div>
       </div>
 
-      {/* Right Panel: Map */}
-      <div className="col-span-8 glass-panel rounded-xl border border-white/5 overflow-hidden relative shadow-2xl">
-        <MapContainer center={[25.4358, 81.8463]} zoom={15} className="w-full h-full bg-[#050505]">
+      {/* RIGHT PANEL: MAP */}
+      <GlassCard className="lg:col-span-8 p-0 overflow-hidden relative border-neon-cyan/30">
+        <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%', background: '#020202' }}>
           <TileLayer
-            attribution='&copy; Esri'
-            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           />
-          <MapController center={mapCenter} />
-
-          {mapTrajectory.length > 1 && (
-            <Polyline positions={mapTrajectory} color="#00F0FF" dashArray="5, 10" weight={2} />
-          )}
-
-          {searchResults.map((match, i) => (
-            <Marker
-              key={i}
-              position={[match.lat, match.lon]}
-              icon={targetIcon}
-              eventHandlers={{ click: () => focusLocation(match) }}
-            >
-              <Popup className="bg-black text-white p-0">
-                <div className="p-2 font-mono text-xs text-center bg-gray-900 border border-white/20 text-white">
-                  <strong className="block text-neon-blue mb-1">{match.cam_id}</strong>
-                  {new Date(match.seen_at).toLocaleTimeString()}
-                </div>
+          <MapUpdater center={mapCenter} />
+          {results.map((match, i) => (
+            <Marker key={i} position={[match.lat, match.lon]}>
+              <Popup className="font-mono text-xs">
+                <strong>{match.cam_name}</strong><br />
+                Confidence: {match.similarity_score}%
               </Popup>
             </Marker>
           ))}
         </MapContainer>
-      </div>
+
+        {/* HUD Elements */}
+        <div className="absolute top-4 right-4 z-[400] bg-black/80 backdrop-blur p-4 rounded border border-neon-cyan/30">
+          <p className="font-mono text-xs text-neon-cyan mb-2">GRID COORDINATES</p>
+          <div className="text-2xl font-bold font-orbitron">{mapCenter[0].toFixed(4)} N</div>
+          <div className="text-2xl font-bold font-orbitron">{mapCenter[1].toFixed(4)} E</div>
+        </div>
+      </GlassCard>
     </div>
   );
 };
 
-// 3. LIVE SURVEILLANCE & EDGE COMPUTE
+// 3. LIVE SURVEILLANCE COMPONENT
 const LiveSurveillance = () => {
   const videoRef = useRef(null);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [lastScan, setLastScan] = useState(null);
   const intervalRef = useRef(null);
-  const [nodeId] = useState(`WEB_NODE_${Math.floor(Math.random() * 9999)}`);
-
+  const [nodeId] = useState(`NODE-${Math.floor(Math.random() * 9999)}`);
   const [stream, setStream] = useState(null);
 
   const startBroadcast = async () => {
@@ -330,236 +242,196 @@ const LiveSurveillance = () => {
       const s = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(s);
       setIsBroadcasting(true);
-
-      // Start Analysis Loop
-      intervalRef.current = setInterval(() => {
-        analyzeFrame();
-      }, 2000);
-
+      intervalRef.current = setInterval(analyzeFrame, 2000);
     } catch (err) {
-      alert("Camera Access Denied: " + err.message);
-      console.error(err);
+      alert("ACCESS DENIED: " + err.message);
     }
   };
 
   const stopBroadcast = () => {
-    if (stream) {
-      stream.getTracks().forEach(track => track.stop());
-    }
+    if (stream) stream.getTracks().forEach(t => t.stop());
     setStream(null);
     if (intervalRef.current) clearInterval(intervalRef.current);
     setIsBroadcasting(false);
-    setLastScan(null);
   };
 
-  // Attach stream to video element when it mounts
   useEffect(() => {
     if (isBroadcasting && videoRef.current && stream) {
       videoRef.current.srcObject = stream;
     }
   }, [isBroadcasting, stream]);
 
+  useEffect(() => () => stopBroadcast(), []);
+
   const analyzeFrame = () => {
     if (!videoRef.current) return;
     const canvas = document.createElement('canvas');
     canvas.width = videoRef.current.videoWidth;
     canvas.height = videoRef.current.videoHeight;
-    const ctx = canvas.getContext('2d');
-    ctx.drawImage(videoRef.current, 0, 0);
+    canvas.getContext('2d').drawImage(videoRef.current, 0, 0);
 
     canvas.toBlob(async (blob) => {
       if (!blob) return;
       const formData = new FormData();
       formData.append('file', blob, 'frame.jpg');
       formData.append('cam_id', nodeId);
-
-      // Allow geolocation if possible - for now static mock
-      // formData.append('lat', ...);
-
       try {
         const res = await axios.post(`${API_URL}/analyze_frame`, formData);
         setLastScan({ ts: new Date().toLocaleTimeString(), data: res.data });
       } catch (e) {
-        console.error("Frame Upload Error", e);
+        console.error("Link Error", e);
       }
     }, 'image/jpeg', 0.8);
   };
 
-  useEffect(() => {
-    return () => stopBroadcast();
-  }, []);
-
-
   return (
-    <div className="h-[calc(100vh-120px)] flex flex-col animate-in fade-in duration-500">
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <button className="px-4 py-2 bg-neon-blue/10 text-neon-blue border border-neon-blue rounded-lg font-mono text-xs font-bold shadow-[0_0_10px_rgba(0,240,255,0.2)]">ALL GATES</button>
-          <button className="px-4 py-2 bg-black/40 text-gray-400 border border-white/10 rounded-lg font-mono text-xs hover:border-white/30">GHATS ONLY</button>
+    <div className="h-full flex flex-col animate-in fade-in duration-700">
+      <SectionHeader title={`Node: ${nodeId}`} subtitle={isBroadcasting ? "STATUS: ONLINE - STREAMING TO GRID" : "STATUS: OFFLINE - STANDBY"} />
+
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Main Feed */}
+        <div className="lg:col-span-3 relative bg-black rounded-xl overflow-hidden border-2 border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] group">
+          {isBroadcasting ? (
+            <>
+              <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform scale-x-[-1]" />
+              {/* HUD Overlay */}
+              <div className="absolute inset-0 pointer-events-none">
+                <div className="w-full h-full border-[20px] border-neon-cyan/20 border-t-0 border-b-0 opacity-50 scanline" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-neon-cyan/30 rounded-full flex items-center justify-center">
+                  <div className="w-2 h-2 bg-neon-red rounded-full animate-ping" />
+                </div>
+                {/* Data overlay */}
+                <div className="absolute bottom-4 left-4 bg-black/60 p-4 font-mono text-xs text-neon-green border-l-2 border-neon-green">
+                  <p>LINK_QUALITY: 100%</p>
+                  <p>LATENCY: 12ms</p>
+                  {lastScan && <p className="mt-2 text-white">LAST_PACKET: {lastScan.ts} | MATCHES: {lastScan.data?.matches?.length || 0}</p>}
+                </div>
+              </div>
+            </>
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black">
+              <AlertTriangle size={64} className="text-white/20 mb-4" />
+              <p className="font-mono text-white/40">SIGNAL LOST. INITIATE PROTOCOL.</p>
+              <NeonButton onClick={startBroadcast} className="mt-6" icon={Camera}>ESTABLISH DATALINK</NeonButton>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center gap-4">
-          {isBroadcasting ? (
-            <button onClick={stopBroadcast} className="px-6 py-2 bg-alert-red hover:bg-red-700 text-white rounded-lg font-bold font-mono text-xs animate-pulse shadow-[0_0_15px_rgba(255,42,42,0.4)] flex items-center gap-2">
-              <Radio size={16} /> STOP BROADCAST ({nodeId})
-            </button>
-          ) : (
-            <button onClick={startBroadcast} className="px-6 py-2 bg-neon-green hover:bg-green-600 text-black rounded-lg font-bold font-mono text-xs shadow-[0_0_15px_rgba(0,255,148,0.4)] flex items-center gap-2">
-              <Camera size={16} /> CONNECT CAMERA
-            </button>
+        {/* Side Panel Controls */}
+        <div className="space-y-4">
+          <GlassCard className="text-center">
+            <HoloBadge label="SYSTEM MODE" variant="active" />
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <div className="bg-neon-cyan/20 p-2 rounded text-xs font-mono text-neon-cyan border border-neon-cyan">FACE_REC</div>
+              <div className="bg-white/5 p-2 rounded text-xs font-mono text-gray-500 border border-white/10">GAIT_ANALYSIS</div>
+            </div>
+          </GlassCard>
+
+          <GlassCard>
+            <h4 className="font-orbitron text-sm mb-2 text-white/70">Feed Settings</h4>
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs font-mono text-gray-400"><span>Overlay</span> <span className="text-neon-cyan">ON</span></div>
+              <div className="flex justify-between text-xs font-mono text-gray-400"><span>Bandwidth</span> <span className="text-neon-cyan">HIGH</span></div>
+            </div>
+          </GlassCard>
+
+          {isBroadcasting && (
+            <NeonButton variant="danger" onClick={stopBroadcast} className="w-full justify-center">TERMINATE LINK</NeonButton>
           )}
         </div>
       </div>
+    </div>
+  );
+};
 
-      <div className="grid grid-cols-4 gap-4 flex-1 overflow-y-auto content-start custom-scrollbar">
-        {/* WEB BROADCAST CARD */}
-        {isBroadcasting && (
-          <div className="aspect-video bg-black rounded-lg overflow-hidden relative group border-2 border-neon-green shadow-[0_0_20px_rgba(0,255,148,0.2)]">
-            <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform scale-x-[-1]" />
-            {/* HUD Overlay */}
-            <div className="absolute top-2 left-2 flex gap-2">
-              <div className="bg-neon-green text-black px-2 py-0.5 rounded text-[10px] font-bold animate-pulse font-mono">
-                BROADCASTING
-              </div>
-            </div>
-            <div className="absolute bottom-0 inset-x-0 bg-black/60 p-2 font-mono text-[10px] text-neon-green">
-              SCANNING... {lastScan?.ts ? `Sync: ${lastScan.ts}` : 'Initializing'}
-              {lastScan?.data?.matches?.length > 0 && (
-                <div className="text-alert-red font-bold animate-pulse mt-1">
-                  ⚠️ TARGET DETECTED: {lastScan.data.matches[0].cam_id}
+// --- APP SHELL (Layout) ---
+function App() {
+  const [activeTab, setActiveTab] = useState('dashboard');
+
+  const navItems = [
+    { id: 'dashboard', icon: LayoutGrid, label: "Overview" },
+    { id: 'search', icon: Search, label: "Neural Search" },
+    { id: 'live', icon: Camera, label: "Live Grid" },
+    { id: 'nodes', icon: Cpu, label: "Nodes (Offline)" },
+  ];
+
+  return (
+    <div className="flex h-screen w-screen bg-cyber-black overflow-hidden font-sans text-white">
+
+      {/* 1. SIDE NAVIGATION DOCK */}
+      <motion.nav
+        initial={{ x: -100 }}
+        animate={{ x: 0 }}
+        className="w-20 lg:w-64 h-full border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col z-50 transition-all duration-300"
+      >
+        <div className="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/10">
+          <Shield className="w-8 h-8 text-neon-cyan animate-pulse-fast" />
+          <span className="hidden lg:block ml-3 font-orbitron font-bold text-xl tracking-wider">
+            KUMBH<span className="text-neon-cyan">RAKSHAK</span>
+          </span>
+        </div>
+
+        <div className="flex-1 py-8 space-y-2 px-2">
+          {navItems.map((item) => {
+            const isActive = activeTab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveTab(item.id)}
+                className={`w-full flex items-center justify-center lg:justify-start lg:px-4 py-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive ? 'bg-neon-cyan/10 text-neon-cyan shadow-[0_0_15px_rgba(0,243,255,0.2)]' : 'text-gray-400 hover:text-white hover:bg-white/5'
+                  }`}
+              >
+                {isActive && <div className="absolute left-0 w-1 h-8 bg-neon-cyan rounded-r-full shadow-[0_0_10px_#00f3ff]" />}
+                <item.icon size={24} className={isActive ? "drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]" : ""} />
+                <span className="hidden lg:block ml-4 font-mono text-sm tracking-widest">{item.label}</span>
+              </button>
+            )
+          })}
+        </div>
+
+        <div className="p-4 border-t border-white/10">
+          <div className="bg-gradient-to-br from-gray-900 to-black border border-white/10 rounded-xl p-4 text-center">
+            <div className="w-2 h-2 bg-green-500 rounded-full mx-auto mb-2 shadow-[0_0_10px_#00ff00]" />
+            <p className="text-[10px] font-mono text-gray-500">SYSTEM STABLE</p>
+            <p className="text-[10px] font-mono text-gray-700 mt-1">v3.0.1 (JARVIS)</p>
+          </div>
+        </div>
+      </motion.nav>
+
+      {/* 2. MAIN CONTENT AREA */}
+      <main className="flex-1 overflow-hidden relative">
+        {/* Background Grid Accent */}
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none" />
+
+        <div className="h-full overflow-y-auto p-4 lg:p-8 relative z-10 custom-scrollbar">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
+              transition={{ duration: 0.3 }}
+              className="h-full"
+            >
+              {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
+              {activeTab === 'search' && <NeuralSearch />}
+              {activeTab === 'live' && <LiveSurveillance />}
+              {activeTab === 'nodes' && (
+                <div className="flex items-center justify-center h-full">
+                  <div className="text-center font-mono opacity-50">
+                    <Grid size={48} className="mx-auto mb-4" />
+                    <p>ACCESSING OFFLINE NODES...</p>
+                    <p className="text-xs mt-2 text-neon-cyan">AUTHORIZATION REQUIRED</p>
+                  </div>
                 </div>
               )}
-            </div>
-            {/* Face Frame */}
-            <div className="absolute inset-[20%] border border-neon-green/30 rounded border-dashed opacity-50 pointer-events-none"></div>
-          </div>
-        )}
-
-        {/* Real Feed (Localhost MJPEG) */}
-        {!isBroadcasting && <VideoCard src="http://localhost:5000/video_feed" label="CAM-01: GATE ENTRY" live status="active" />}
-
-        {/* Simulated Offline/Static Feeds */}
-        <VideoCard src="https://media.istockphoto.com/id/1154563854/photo/multiple-camera-footage-on-monitor.jpg?s=612x612&w=0&k=20&c=N2aXTRW-2D01u1C3nF2f2NWDXqT5qJ1zQkZ6tP7_y1I=" label="CAM-02: SECTOR 4" status="static" />
-        <VideoCard label="CAM-03: SANGAM POINT" status="offline" />
-        <VideoCard src="https://media.istockphoto.com/id/489370778/photo/cctv-security-camera-monitor-in-office-building.jpg?s=612x612&w=0&k=20&c=uKRPvH59d9PGEE6Jb6oK6-rQcI1A0eJ-3CQA_5lD_xY=" label="CAM-04: PARKING A" status="static" />
-
-        {/* Grid Fillers */}
-        {[5, 6, 7, 8, 9, 10, 11, 12].map(i => (
-          <VideoCard key={i} label={`CAM-${i.toString().padStart(2, '0')}: REMOTE NODE`} status="offline" />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-// --- HELPER COMPONENTS ---
-
-const StatCard = ({ icon, title, value, sub, trend }) => (
-  <div className="glass-panel p-6 rounded-xl border-t border-l border-white/10 border-b border-r border-black/50 shadow-glass flex items-start justify-between group hover:border-neon-blue/50 hover:shadow-[0_0_20px_rgba(0,240,255,0.15)] transition-all duration-300 relative overflow-hidden bg-gradient-to-br from-gray-900/90 to-black/90">
-    {/* Hover Glow Effect */}
-    <div className="absolute -right-10 -top-10 w-32 h-32 bg-neon-blue/5 rounded-full blur-3xl opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-    <div className="relative z-10">
-      <div className="text-xs text-gray-400 mb-2 font-mono tracking-widest uppercase">{title}</div>
-      <div className="text-3xl font-bold text-white mb-1 font-mono tracking-tight shadow-black drop-shadow-lg">{value}</div>
-      <div className={`text-[10px] ${trend ? 'text-alert-red font-bold' : 'text-gray-500'} font-mono`}>{sub}</div>
-    </div>
-    <div className="p-4 bg-white/5 rounded-xl border border-white/5 group-hover:bg-neon-blue/10 group-hover:border-neon-blue/30 group-hover:text-white transition-all shadow-inner">
-      {icon}
-    </div>
-  </div>
-);
-
-const AlertItem = ({ type, message, time }) => {
-  // Critical = Red, Warning = Orange (defaulting to warm), Info = Blue
-  const borderClass = type === 'critical' ? 'border-alert-red bg-alert-red/5' : type === 'warning' ? 'border-orange-500 bg-orange-500/5' : 'border-neon-blue/50 bg-neon-blue/5';
-  const textClass = type === 'critical' ? 'text-alert-red' : type === 'warning' ? 'text-orange-400' : 'text-neon-blue';
-
-  return (
-    <div className={`p-3 rounded border-l-2 ${borderClass} flex justify-between items-center transition-colors hover:bg-white/5`}>
-      <span className="text-xs font-medium text-gray-300 font-mono tracking-tight">{message}</span>
-      <span className={`text-[10px] font-mono ${textClass}`}>{time}</span>
-    </div>
-  );
-};
-
-const VideoCard = ({ src, label, live, status }) => {
-  const isOffline = status === 'offline';
-  // Active = Neon Blue Border, Static = Gray Border, Offline = Dim
-  const borderClass = live
-    ? 'border-neon-blue shadow-[0_0_15px_rgba(0,240,255,0.2)]'
-    : isOffline
-      ? 'border-white/5 opacity-50'
-      : 'border-white/20';
-
-  return (
-    <div className={`aspect-video bg-black rounded-lg overflow-hidden relative group border ${borderClass} transition-all`}>
-      {isOffline ? (
-        <div className="w-full h-full flex flex-col items-center justify-center bg-gray-900 scanline">
-          <AlertTriangle className="text-gray-700 mb-2" size={32} />
-          <span className="text-gray-600 font-mono text-xs tracking-[0.2em] animate-pulse">NO SIGNAL</span>
+            </motion.div>
+          </AnimatePresence>
         </div>
-      ) : (
-        <img src={src} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-      )}
+      </main>
 
-      {/* Overlays */}
-      <div className="absolute top-2 left-2 flex gap-2 z-10">
-        {live ? (
-          <div className="flex gap-1 items-center bg-alert-red text-white px-2 py-0.5 rounded text-[10px] font-bold shadow-sm animate-pulse font-mono">
-            <span className="w-1.5 h-1.5 bg-white rounded-full"></span> LIVE
-          </div>
-        ) : !isOffline && (
-          <div className="bg-black/60 text-gray-300 px-2 py-0.5 rounded text-[10px] font-mono border border-white/10 backdrop-blur-sm">REC</div>
-        )}
-      </div>
-
-      <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent p-3 pt-6">
-        <div className="flex justify-between items-end">
-          <span className="text-xs font-mono text-neon-blue font-bold tracking-wider drop-shadow-md">{label}</span>
-          {!isOffline && <Activity size={12} className="text-neon-green" />}
-        </div>
-      </div>
-
-      {/* Cyber Overlay / Targeting Reticle */}
-      {!isOffline && (
-        <div className="absolute inset-0 border border-transparent group-hover:border-neon-blue/30 transition-all duration-300 pointer-events-none">
-          <div className="absolute top-0 left-0 w-2 h-2 border-t border-l border-neon-blue opacity-50"></div>
-          <div className="absolute top-0 right-0 w-2 h-2 border-t border-r border-neon-blue opacity-50"></div>
-          <div className="absolute bottom-0 left-0 w-2 h-2 border-b border-l border-neon-blue opacity-50"></div>
-          <div className="absolute bottom-0 right-0 w-2 h-2 border-b border-r border-neon-blue opacity-50"></div>
-        </div>
-      )}
     </div>
   );
-};
-
-const HeatmapLayer = () => {
-  const map = useMap();
-  useEffect(() => {
-    axios.get('http://localhost:8000/stats/heatmap').then(res => {
-      if (res.data && res.data.length > 0) {
-        L.heatLayer(res.data, { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
-      }
-    });
-  }, [map]);
-  return null;
-};
-
-// --- APP ROOT ---
-const App = () => {
-  return (
-    <Router>
-      <MainLayout>
-        <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/search" element={<NeuralSearch />} />
-          <Route path="/live" element={<LiveSurveillance />} />
-        </Routes>
-      </MainLayout>
-    </Router>
-  );
-};
+}
 
 export default App;

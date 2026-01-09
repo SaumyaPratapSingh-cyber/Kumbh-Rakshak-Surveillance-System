@@ -7,27 +7,40 @@ export default {
     theme: {
         extend: {
             colors: {
-                'cyber-blue': '#0056D2',
-                'neon-blue': '#00F0FF',
-                'neon-green': '#00FF94',
-                'alert-red': '#FF2A2A',
-                'deep-space': '#050505',
-                'glass-dark': 'rgba(10, 10, 10, 0.6)',
-                'slate-text': '#E0E0E0', // Keeping variable name for compatibility but mapping to light color
-            },
-            boxShadow: {
-                'glass': '0 8px 32px 0 rgba(0, 0, 0, 0.5)',
-                'neon': '0 0 10px rgba(0, 240, 255, 0.3)',
+                'cyber-black': '#020202',
+                'void-gray': '#09090b',
+                'tech-white': '#e2e8f0',
+                'muted-tech': '#94a3b8',
+                'neon-cyan': '#00f3ff',
+                'hologram-blue': '#2d8cf0',
+                'critical-red': '#ff003c',
+                'warning-amber': '#fcee0a',
+                'glass-dark': 'rgba(0, 0, 0, 0.6)',
             },
             fontFamily: {
                 sans: ['Inter', 'sans-serif'],
-                mono: ['JetBrains Mono', 'monospace'],
+                orbitron: ['Rajdhani', 'sans-serif'],
+                mono: ['Space Mono', 'monospace'],
+            },
+            boxShadow: {
+                'glass-sm': '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)',
+                'glass-md': '0 8px 32px 0 rgba(0, 0, 0, 0.37)',
+                'neon-glow': '0 0 10px rgba(0, 243, 255, 0.5), 0 0 20px rgba(0, 243, 255, 0.3)',
+                'critical-glow': '0 0 10px rgba(255, 0, 60, 0.5), 0 0 20px rgba(255, 0, 60, 0.3)',
             },
             animation: {
-                'scan': 'scan 4s linear infinite',
+                'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                'spin-slow': 'spin 3s linear infinite',
+                'glitch': 'glitch 1s linear infinite',
+                'scanline': 'scanline 8s linear infinite',
             },
             keyframes: {
-                scan: {
+                glitch: {
+                    '2%, 64%': { transform: 'translate(2px,0) skew(0deg)' },
+                    '4%, 60%': { transform: 'translate(-2px,0) skew(0deg)' },
+                    '62%': { transform: 'translate(0,0) skew(5deg)' },
+                },
+                scanline: {
                     '0%': { transform: 'translateY(-100%)' },
                     '100%': { transform: 'translateY(100vh)' }
                 }
