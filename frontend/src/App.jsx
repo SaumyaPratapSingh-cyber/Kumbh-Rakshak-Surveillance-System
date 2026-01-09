@@ -97,63 +97,69 @@ const Dashboard = ({ setActiveTab }) => {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in zoom-in duration-500">
+    <div className="space-y-6 animate-in fade-in zoom-in duration-500 relative">
+      {/* BACKGROUND ROTATING HUD */}
+      <div className="absolute -top-20 -right-20 w-[500px] h-[500px] opacity-20 pointer-events-none animate-[spin_60s_linear_infinite]">
+        <img src="/assets/hud_circle.png" alt="" className="w-full h-full object-contain mix-blend-screen" />
+      </div>
+
       <SectionHeader title="Mission Control" subtitle="System Overview" />
 
       {/* Top Stats Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <GlassCard className="flex items-center justify-between">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 relative z-10">
+        <GlassCard className="flex items-center justify-between group">
           <div>
-            <p className="text-muted-tech font-mono text-xs uppercase tracking-widest">Total Sightings</p>
-            <h3 className="text-4xl font-orbitron font-bold text-neon-cyan mt-2">{stats.total_sightings}</h3>
+            <p className="text-[#e9b3fb]/70 font-mono text-xs uppercase tracking-widest group-hover:text-[#e9b3fb] transition-colors">Total Sightings</p>
+            <h3 className="text-4xl font-orbitron font-bold text-white mt-2 drop-shadow-[0_0_10px_rgba(111,0,255,0.5)]">{stats.total_sightings}</h3>
           </div>
-          <Activity className="text-neon-cyan/50 w-12 h-12" />
+          <Activity className="text-[#6f00ff] w-12 h-12 drop-shadow-[0_0_10px_rgba(111,0,255,0.8)]" />
         </GlassCard>
 
-        <GlassCard className="flex items-center justify-between">
+        <GlassCard className="flex items-center justify-between group">
           <div>
-            <p className="text-muted-tech font-mono text-xs uppercase tracking-widest">Active Nodes</p>
-            <h3 className="text-4xl font-orbitron font-bold text-neon-green mt-2">{stats.active_nodes}</h3>
+            <p className="text-[#e9b3fb]/70 font-mono text-xs uppercase tracking-widest group-hover:text-[#e9b3fb] transition-colors">Active Nodes</p>
+            <h3 className="text-4xl font-orbitron font-bold text-[#00ff9d] mt-2 drop-shadow-[0_0_10px_rgba(0,255,157,0.5)]">{stats.active_nodes}</h3>
           </div>
-          <Zap className="text-neon-green/50 w-12 h-12" />
+          <Zap className="text-[#00ff9d] w-12 h-12 drop-shadow-[0_0_10px_rgba(0,255,157,0.8)]" />
         </GlassCard>
 
-        <GlassCard className="flex items-center justify-between border-critical-red/30">
+        <GlassCard className="flex items-center justify-between border-critical-red/30 group">
           <div>
-            <p className="text-muted-tech font-mono text-xs uppercase tracking-widest">Threats Det.</p>
-            <h3 className="text-4xl font-orbitron font-bold text-critical-red mt-2">{stats.alerts_24h}</h3>
+            <p className="text-[#e9b3fb]/70 font-mono text-xs uppercase tracking-widest group-hover:text-[#e9b3fb] transition-colors">Threats Det.</p>
+            <h3 className="text-4xl font-orbitron font-bold text-critical-red mt-2 drop-shadow-[0_0_10px_rgba(255,0,60,0.5)]">{stats.alerts_24h}</h3>
           </div>
-          <AlertTriangle className="text-critical-red/50 w-12 h-12 animate-pulse" />
+          <AlertTriangle className="text-critical-red w-12 h-12 animate-pulse drop-shadow-[0_0_15px_rgba(255,0,60,0.8)]" />
         </GlassCard>
       </div>
 
       {/* Main Content Grid (Masonry-ish) */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[500px]">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 h-[500px] relative z-10">
         {/* Large Map Preview */}
-        <GlassCard className="lg:col-span-2 relative p-0 overflow-hidden group">
-          <div className="absolute top-4 left-4 z-10 bg-black/50 backdrop-blur px-3 py-1 border border-white/10 rounded-full flex items-center gap-2">
-            <span className="w-2 h-2 bg-neon-green rounded-full animate-pulse" />
-            <span className="text-xs font-mono text-white">LIVE GEOSPATIAL GRID</span>
+        <GlassCard className="lg:col-span-2 relative p-0 overflow-hidden group border-[#6f00ff]/30">
+          <div className="absolute top-4 left-4 z-10 bg-black/60 backdrop-blur px-3 py-1 border border-[#e9b3fb]/30 rounded-full flex items-center gap-2">
+            <span className="w-2 h-2 bg-[#00ff9d] rounded-full animate-pulse" />
+            <span className="text-xs font-mono text-[#e9b3fb]">LIVE GEOSPATIAL GRID</span>
           </div>
-          {/* Map Placeholder or Real Map */}
-          <div className="absolute inset-0 bg-[url('https://api.mapbox.com/styles/v1/mapbox/dark-v10/static/81.8463,25.4358,12,0/800x600?access_token=YOUR_TOKEN')] bg-cover opacity-50 grayscale group-hover:grayscale-0 transition-all duration-700" />
-          <div className="absolute inset-0 flex items-center justify-center">
-            <NeonButton onClick={() => setActiveTab('search')} icon={MapIcon}>Open Tactical Map</NeonButton>
+
+          {/* Cyber Grid Background */}
+          <div className="absolute inset-0 bg-[url('/assets/cyber_grid.png')] bg-cover bg-center opacity-60 mix-blend-lighten group-hover:scale-105 transition-transform duration-[3s]" />
+
+          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent">
+            <NeonButton onClick={() => setActiveTab('search')} icon={MapIcon} className="backdrop-blur-xl">Open Tactical Map</NeonButton>
           </div>
         </GlassCard>
 
         {/* Live Feed Feed */}
-        <GlassCard className="overflow-hidden flex flex-col">
-          <h3 className="font-orbitron text-lg mb-4 flex items-center gap-2"><Radio size={16} /> Recent Intercepts</h3>
+        <GlassCard className="overflow-hidden flex flex-col border-[#6f00ff]/30">
+          <h3 className="font-orbitron text-lg mb-4 flex items-center gap-2 text-[#e9b3fb]"><Radio size={16} /> Recent Intercepts</h3>
           <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-2">
             {recentSightings.map((sighting, i) => (
-              <div key={i} className="flex items-center gap-3 p-2 bg-white/5 rounded-lg border border-white/5 hover:border-neon-cyan/50 transition-colors">
-                <div className="w-10 h-10 bg-black rounded overflow-hidden">
-                  {/* Fallback avatar if no image */}
+              <div key={i} className="flex items-center gap-3 p-2 bg-white/5 rounded-lg border border-white/5 hover:border-[#6f00ff]/50 transition-colors group">
+                <div className="w-10 h-10 bg-black rounded overflow-hidden border border-white/10 group-hover:border-[#6f00ff]">
                   <User className="w-full h-full p-2 text-gray-500" />
                 </div>
                 <div>
-                  <p className="font-mono text-xs text-neon-cyan">CAM-{sighting.cam_id?.substring(0, 4)}</p>
+                  <p className="font-mono text-xs text-[#e9b3fb]">CAM-{sighting.cam_id?.substring(0, 4)}</p>
                   <p className="text-[10px] text-gray-400">{new Date(sighting.created_at).toLocaleTimeString()}</p>
                 </div>
               </div>
@@ -208,34 +214,38 @@ const NeuralSearch = () => {
 
       {/* LEFT PANEL: UPLOAD & RESULTS */}
       <div className="lg:col-span-4 space-y-6 flex flex-col h-full">
-        <GlassCard className="p-6 shrink-0">
+        <GlassCard className="p-6 shrink-0 relative overflow-hidden">
           <SectionHeader title="Target Acquisition" />
-          <div className="border-2 border-dashed border-white/20 rounded-xl p-8 text-center hover:border-neon-cyan transition-colors relative group">
-            <input type="file" onChange={handleSearch} className="absolute inset-0 opacity-0 cursor-pointer" />
-            <div className="flex flex-col items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-neon-cyan/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                <Search className="w-8 h-8 text-neon-cyan" />
+
+          <div className="border-2 border-dashed border-[#6f00ff]/30 rounded-xl p-8 text-center hover:border-[#e9b3fb] hover:bg-[#6f00ff]/5 transition-all duration-300 relative group overflow-hidden">
+            <input type="file" onChange={handleSearch} className="absolute inset-0 opacity-0 cursor-pointer z-20" />
+
+            <div className="flex flex-col items-center gap-4 relative z-10">
+              <div className="w-24 h-24 rounded-full bg-[#6f00ff]/10 flex items-center justify-center group-hover:scale-110 transition-transform border border-[#6f00ff]/30">
+                {/* Mech Eye Icon */}
+                <img src="/assets/mech_eye.png" alt="Scan" className="w-full h-full object-cover rounded-full opacity-80 group-hover:opacity-100 transition-opacity" />
               </div>
-              <p className="font-mono text-sm text-muted-tech">DROP TARGET VISUAL HERE</p>
+              <p className="font-mono text-sm text-[#e9b3fb] tracking-widest">INITIATE BIOMETRIC SCAN</p>
             </div>
+
             {/* Scanning Effect Overlay */}
-            {loading && <div className="absolute inset-0 bg-neon-cyan/10 animate-pulse rounded-xl" />}
+            {loading && <div className="absolute inset-0 bg-[#6f00ff]/20 animate-pulse rounded-xl z-20" />}
           </div>
         </GlassCard>
 
         {/* Results List */}
         <div className="flex-1 overflow-y-auto custom-scrollbar space-y-4 pr-2">
-          {loading && <div className="text-center font-mono text-neon-cyan animate-pulse">INITIATING DEEPFACE SCAN...</div>}
+          {loading && <div className="text-center font-mono text-[#e9b3fb] animate-pulse">Running DeepFace Algorithm...</div>}
 
           {results.map((match, i) => (
-            <GlassCard key={i} className="flex items-center gap-4 p-4 border-l-4 border-neon-cyan hover:bg-white/5 cursor-pointer" onClick={() => setMapCenter([match.lat, match.lon])}>
-              <div className="w-12 h-12 bg-black rounded border border-white/10 flex items-center justify-center text-lg font-bold text-white/50">
+            <GlassCard key={i} className="flex items-center gap-4 p-4 border-l-4 border-[#6f00ff] hover:bg-white/5 cursor-pointer group" onClick={() => setMapCenter([match.lat, match.lon])}>
+              <div className="w-12 h-12 bg-black rounded border border-white/10 flex items-center justify-center text-lg font-bold text-[#e9b3fb] group-hover:text-white transition-colors">
                 {(match.similarity_score)}%
               </div>
               <div>
-                <h4 className="font-orbitron text-white">{match.cam_name}</h4>
-                <p className="font-mono text-xs text-muted-tech flex items-center gap-2">
-                  <MapIcon size={12} /> {match.lat.toFixed(4)}, {match.lon.toFixed(4)}
+                <h4 className="font-orbitron text-white group-hover:text-shadow-[0_0_10px_white]">{match.cam_name}</h4>
+                <p className="font-mono text-xs text-[#94a3b8] flex items-center gap-2">
+                  <MapIcon size={12} className="text-[#6f00ff]" /> {match.lat.toFixed(4)}, {match.lon.toFixed(4)}
                 </p>
                 <p className="text-[10px] text-gray-500 mt-1">{new Date(match.created_at).toLocaleString()}</p>
               </div>
@@ -245,8 +255,8 @@ const NeuralSearch = () => {
       </div>
 
       {/* RIGHT PANEL: MAP */}
-      <GlassCard className="lg:col-span-8 p-0 overflow-hidden relative border-neon-cyan/30">
-        <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%', background: '#020202' }}>
+      <GlassCard className="lg:col-span-8 p-0 overflow-hidden relative border-[#6f00ff]/30 group">
+        <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%', background: '#05000a' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
             url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
@@ -263,10 +273,10 @@ const NeuralSearch = () => {
         </MapContainer>
 
         {/* HUD Elements */}
-        <div className="absolute top-4 right-4 z-[400] bg-black/80 backdrop-blur p-4 rounded border border-neon-cyan/30">
-          <p className="font-mono text-xs text-neon-cyan mb-2">GRID COORDINATES</p>
-          <div className="text-2xl font-bold font-orbitron">{mapCenter[0].toFixed(4)} N</div>
-          <div className="text-2xl font-bold font-orbitron">{mapCenter[1].toFixed(4)} E</div>
+        <div className="absolute top-4 right-4 z-[400] bg-black/80 backdrop-blur p-4 rounded border border-[#6f00ff]/50 shadow-[0_0_20px_rgba(111,0,255,0.2)]">
+          <p className="font-mono text-xs text-[#e9b3fb] mb-2 tracking-widest">GRID COORDINATES</p>
+          <div className="text-2xl font-bold font-orbitron text-white">{mapCenter[0].toFixed(4)} N</div>
+          <div className="text-2xl font-bold font-orbitron text-white">{mapCenter[1].toFixed(4)} E</div>
         </div>
       </GlassCard>
     </div>
@@ -330,23 +340,23 @@ const LiveSurveillance = () => {
   };
 
   return (
-    <div className="h-full flex flex-col animate-in fade-in duration-700">
+    <div className="h-full flex flex-col animate-in fade-in duration-700 relative">
       <SectionHeader title={`Node: ${nodeId}`} subtitle={isBroadcasting ? "STATUS: ONLINE - STREAMING TO GRID" : "STATUS: OFFLINE - STANDBY"} />
 
-      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
+      <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 relative z-10">
         {/* Main Feed */}
-        <div className="lg:col-span-3 relative bg-black rounded-xl overflow-hidden border-2 border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)] group">
+        <div className="lg:col-span-3 relative bg-black rounded-xl overflow-hidden border-2 border-[#6f00ff]/20 shadow-[0_0_50px_rgba(111,0,255,0.1)] group">
           {isBroadcasting ? (
             <>
               <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-cover transform scale-x-[-1]" />
               {/* HUD Overlay */}
               <div className="absolute inset-0 pointer-events-none">
-                <div className="w-full h-full border-[20px] border-neon-cyan/20 border-t-0 border-b-0 opacity-50 scanline" />
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-neon-cyan/30 rounded-full flex items-center justify-center">
-                  <div className="w-2 h-2 bg-neon-red rounded-full animate-ping" />
+                <div className="w-full h-full border-[20px] border-[#6f00ff]/10 border-t-0 border-b-0 opacity-50 scanline" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 border border-[#e9b3fb]/30 rounded-full flex items-center justify-center animate-[spin_10s_linear_infinite]">
+                  <div className="w-full h-full border-t border-b border-[#e9b3fb] rounded-full transform rotate-45" />
                 </div>
                 {/* Data overlay */}
-                <div className="absolute bottom-4 left-4 bg-black/60 p-4 font-mono text-xs text-neon-green border-l-2 border-neon-green">
+                <div className="absolute bottom-4 left-4 bg-black/60 p-4 font-mono text-xs text-[#00ff9d] border-l-2 border-[#00ff9d]">
                   <p>LINK_QUALITY: 100%</p>
                   <p>LATENCY: 12ms</p>
                   {lastScan && <p className="mt-2 text-white">LAST_PACKET: {lastScan.ts} | MATCHES: {lastScan.data?.matches?.length || 0}</p>}
@@ -354,9 +364,12 @@ const LiveSurveillance = () => {
               </div>
             </>
           ) : (
-            <div className="w-full h-full flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black">
-              <AlertTriangle size={64} className="text-white/20 mb-4" />
-              <p className="font-mono text-white/40">SIGNAL LOST. INITIATE PROTOCOL.</p>
+            <div className="w-full h-full flex flex-col items-center justify-center bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-gray-900 via-black to-black relative overflow-hidden">
+              {/* Background HUD decorative */}
+              <img src="/assets/hud_circle.png" className="absolute w-[800px] h-[800px] opacity-10 animate-[spin_120s_linear_infinite]" />
+
+              <AlertTriangle size={64} className="text-[#e9b3fb]/20 mb-4 animate-pulse" />
+              <p className="font-mono text-[#e9b3fb]/40 tracking-widest">SIGNAL LOST. INITIATE PROTOCOL.</p>
               <NeonButton onClick={startBroadcast} className="mt-6" icon={Camera}>ESTABLISH DATALINK</NeonButton>
             </div>
           )}
@@ -367,7 +380,7 @@ const LiveSurveillance = () => {
           <GlassCard className="text-center">
             <HoloBadge label="SYSTEM MODE" variant="active" />
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <div className="bg-neon-cyan/20 p-2 rounded text-xs font-mono text-neon-cyan border border-neon-cyan">FACE_REC</div>
+              <div className="bg-[#6f00ff]/20 p-2 rounded text-xs font-mono text-[#e9b3fb] border border-[#6f00ff]">FACE_REC</div>
               <div className="bg-white/5 p-2 rounded text-xs font-mono text-gray-500 border border-white/10">GAIT_ANALYSIS</div>
             </div>
           </GlassCard>
@@ -375,8 +388,8 @@ const LiveSurveillance = () => {
           <GlassCard>
             <h4 className="font-orbitron text-sm mb-2 text-white/70">Feed Settings</h4>
             <div className="space-y-2">
-              <div className="flex justify-between text-xs font-mono text-gray-400"><span>Overlay</span> <span className="text-neon-cyan">ON</span></div>
-              <div className="flex justify-between text-xs font-mono text-gray-400"><span>Bandwidth</span> <span className="text-neon-cyan">HIGH</span></div>
+              <div className="flex justify-between text-xs font-mono text-gray-400"><span>Overlay</span> <span className="text-[#e9b3fb]">ON</span></div>
+              <div className="flex justify-between text-xs font-mono text-gray-400"><span>Bandwidth</span> <span className="text-[#e9b3fb]">HIGH</span></div>
             </div>
           </GlassCard>
 
