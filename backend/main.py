@@ -188,6 +188,14 @@ async def search_face(file: UploadFile = File(...)):
                 detector_backend="opencv",
                 enforce_detection=True
             )
+        except ValueError:
+             # Try without strict detection if failed
+             embedding_objs = DeepFace.represent(
+                img_path=file_location,
+                model_name="ArcFace",
+                enforce_detection=False
+            )
+
         # Ensure embedding is a standard list of floats (Crucial for JSON serialization)
         embedding = [float(x) for x in embedding_objs[0]["embedding"]]
 
