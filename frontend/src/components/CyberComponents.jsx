@@ -9,33 +9,43 @@ function cn(...inputs) {
 }
 
 // --- 1. GLASS CARD (The Building Block) ---
-export const GlassCard = ({ children, className, hoverEffect = true }) => {
+export const GlassCard = ({ children, className = "", hoverEffect = true, variant = "cyber" }) => {
+    const baseStyles = "backdrop-blur-md bg-black/40 border transition-all duration-300 relative overflow-hidden p-6";
+    const variants = {
+        cyber: "rounded-xl border-white/10 hover:border-neon-cyan/50 hover:shadow-[0_0_20px_rgba(0,243,255,0.1)]",
+        organic: "rounded-[2rem] border-white/5 bg-white/[0.03] hover:bg-white/[0.05] hover:scale-[1.01]"
+    };
+
     return (
         <motion.div
-            whileHover={hoverEffect ? { scale: 1.01, boxShadow: "0 0 20px rgba(0, 243, 255, 0.15)" } : {}}
-            className={cn(
-                "glass-panel rounded-xl p-6 relative overflow-hidden transition-all duration-300",
-                "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:opacity-0 hover:before:opacity-100 before:transition-opacity",
-                className
-            )}
+            whileHover={hoverEffect && variant === 'cyber' ? { scale: 1.01, boxShadow: "0 0 20px rgba(0, 243, 255, 0.15)" } : {}}
+            className={clsx(baseStyles, variants[variant] || variants.cyber, className)}
         >
-            {/* Decorative Corner Markers */}
-            <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-neon-cyan/30 rounded-tl-xl" />
-            <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-neon-cyan/30 rounded-tr-xl" />
-            <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-neon-cyan/30 rounded-bl-xl" />
-            <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-neon-cyan/30 rounded-br-xl" />
+            {/* Noise Texture for Organic Variant */}
+            {variant === 'organic' && (
+                <div className="absolute inset-0 opacity-[0.05] pointer-events-none mix-blend-overlay"
+                    style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")` }}
+                />
+            )}
 
-            {children}
+            {/* Cyber Hover Glow */}
+            {hoverEffect && variant === 'cyber' && (
+                <div className="absolute inset-0 bg-gradient-to-br from-neon-cyan/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            )}
+            <div className="relative z-10">{children}</div>
         </motion.div>
     );
 };
 
 // --- 2. NEON BUTTON (Primary & Secondary) ---
-export const NeonButton = ({ children, variant = "primary", onClick, icon: Icon, className, ...props }) => {
+export const NeonButton = ({ children, onClick, variant = "primary", icon: Icon, className = "", type = "button" }) => {
+    const baseStyles = "relative px-6 py-3 font-orbitron font-bold tracking-wider transition-all duration-300 flex items-center justify-center gap-2 overflow-hidden group rounded-full";
+
     const variants = {
-        primary: "bg-neon-cyan/10 border-neon-cyan text-neon-cyan hover:bg-neon-cyan hover:text-black shadow-[0_0_15px_rgba(0,243,255,0.3)] hover:shadow-[0_0_25px_rgba(0,243,255,0.6)]",
-        danger: "bg-critical-red/10 border-critical-red text-critical-red hover:bg-critical-red hover:text-white shadow-[0_0_15px_rgba(255,0,60,0.3)] hover:shadow-[0_0_25px_rgba(255,0,60,0.6)]",
-        ghost: "bg-transparent border-white/20 text-muted-tech hover:border-white/60 hover:text-white"
+        primary: "bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/50 hover:bg-neon-cyan hover:text-black hover:shadow-[0_0_20px_rgba(0,243,255,0.5)]",
+        danger: "bg-critical-red/10 text-critical-red border border-critical-red/50 hover:bg-critical-red hover:text-white hover:shadow-[0_0_20px_rgba(255,0,60,0.5)]",
+        ghost: "bg-transparent text-white/70 border border-white/10 hover:border-white/30 hover:bg-white/5",
+        organic: "bg-white/10 text-white border-0 hover:bg-white/20 backdrop-blur-md"
     };
 
     return (

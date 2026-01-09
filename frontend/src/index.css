@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Rajdhani:wght@400;500;600;700&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Syncopate:wght@400;700&family=Space+Grotesk:wght@300;400;500;600;700&family=Rajdhani:wght@500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -7,15 +7,23 @@
 @layer base {
   body {
     @apply bg-cyber-black text-tech-white font-sans antialiased overflow-x-hidden selection:bg-neon-cyan selection:text-black;
-    background-image:
-      radial-gradient(circle at 50% 50%, rgba(0, 243, 255, 0.03) 0%, transparent 50%),
-      linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-    background-size: 100% 100%, 40px 40px, 40px 40px;
   }
 }
 
 @layer utilities {
+  .font-syncopate {
+    font-family: 'Syncopate', sans-serif;
+  }
+
+  .font-space {
+    font-family: 'Space Grotesk', sans-serif;
+  }
+
+  .glass-panel-organic {
+    @apply backdrop-blur-xl bg-white/5 border border-white/10 shadow-2xl rounded-[2rem];
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  }
+
   .glass-panel {
     @apply backdrop-blur-md bg-glass-dark border border-white/5 shadow-glass-md;
   }
@@ -82,6 +90,28 @@
     pointer-events: none;
     animation: flicker 0.15s infinite;
   }
+
+  /* Aurora Animation */
+  .animate-aurora {
+    animation: aurora 20s infinite alternate;
+  }
+
+  @keyframes aurora {
+    0% {
+      transform: translate(0, 0) scale(1);
+      opacity: 0.4;
+    }
+
+    50% {
+      transform: translate(20px, -20px) scale(1.1);
+      opacity: 0.6;
+    }
+
+    100% {
+      transform: translate(-10px, 10px) scale(0.9);
+      opacity: 0.4;
+    }
+  }
 }
 
 /* Custom Scrollbar */
@@ -106,14 +136,14 @@
 
 /* Leaflet Overrides */
 .leaflet-container {
-  font-family: 'Space Mono', monospace !important;
+  font-family: 'Space Grotesk', sans-serif !important;
 }
 
 .leaflet-popup-content-wrapper {
   background: rgba(0, 0, 0, 0.9) !important;
   backdrop-filter: blur(10px);
   border: 1px solid #00f3ff;
-  border-radius: 0px !important;
+  border-radius: 12px !important;
   color: #fff !important;
 }
 

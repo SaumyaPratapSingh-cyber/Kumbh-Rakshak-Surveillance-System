@@ -18,8 +18,9 @@ export default {
                 'glass-dark': 'rgba(0, 0, 0, 0.6)',
             },
             fontFamily: {
-                sans: ['Inter', 'sans-serif'],
-                orbitron: ['Rajdhani', 'sans-serif'],
+                sans: ['Space Grotesk', 'sans-serif'],
+                orbitron: ['Rajdhani', 'sans-serif'], // Keeping purely for compatibility, but switching visual preference
+                hero: ['Syncopate', 'sans-serif'],
                 mono: ['Space Mono', 'monospace'],
             },
             boxShadow: {

@@ -9,6 +9,8 @@ import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import { GlassCard, NeonButton, HoloBadge, TechInput, SectionHeader } from './components/CyberComponents';
+import FluidBackground from './components/FluidBackground';
+import HeroLanding from './components/HeroLanding';
 
 // --- CONFIGURATION ---
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
@@ -393,6 +395,7 @@ function App() {
     return <CrashScreen error={supabaseError} />;
   }
 
+  const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
   const navItems = [
@@ -403,80 +406,109 @@ function App() {
   ];
 
   return (
-    <div className="flex h-screen w-screen bg-cyber-black overflow-hidden font-sans text-white">
+    <div className="bg-cyber-black text-white font-sans overflow-hidden h-screen w-screen selection:bg-neon-cyan selection:text-black">
+      <AnimatePresence mode="wait">
+        {showLanding ? (
+          <motion.div
+            key="landing"
+            exit={{ opacity: 0, scale: 1.1, filter: 'blur(20px)' }}
+            transition={{ duration: 1.5, ease: "easeInOut" }}
+            className="fixed inset-0 z-50"
+          >
+            <HeroLanding onEnter={() => setShowLanding(false)} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="app"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 1 }}
+            className="relative h-full w-full flex flex-col"
+          >
+            {/* 1. CINEMATIC BACKGROUND LAYER */}
+            <div className="absolute inset-0 z-0">
+              <FluidBackground />
+            </div>
 
-      {/* 1. SIDE NAVIGATION DOCK */}
-      <motion.nav
-        initial={{ x: -100 }}
-        animate={{ x: 0 }}
-        className="w-20 lg:w-64 h-full border-r border-white/10 bg-black/40 backdrop-blur-xl flex flex-col z-50 transition-all duration-300"
-      >
-        <div className="h-20 flex items-center justify-center lg:justify-start lg:px-6 border-b border-white/10">
-          <Shield className="w-8 h-8 text-neon-cyan animate-pulse-fast" />
-          <span className="hidden lg:block ml-3 font-orbitron font-bold text-xl tracking-wider">
-            KUMBH<span className="text-neon-cyan">RAKSHAK</span>
-          </span>
-        </div>
-
-        <div className="flex-1 py-8 space-y-2 px-2">
-          {navItems.map((item) => {
-            const isActive = activeTab === item.id;
-            return (
-              <button
-                key={item.id}
-                onClick={() => setActiveTab(item.id)}
-                className={`w-full flex items-center justify-center lg:justify-start lg:px-4 py-4 rounded-xl transition-all duration-300 group relative overflow-hidden ${isActive ? 'bg-neon-cyan/10 text-neon-cyan shadow-[0_0_15px_rgba(0,243,255,0.2)]' : 'text-gray-400 hover:text-white hover:bg-white/5'
-                  }`}
-              >
-                {isActive && <div className="absolute left-0 w-1 h-8 bg-neon-cyan rounded-r-full shadow-[0_0_10px_#00f3ff]" />}
-                <item.icon size={24} className={isActive ? "drop-shadow-[0_0_5px_rgba(0,243,255,0.8)]" : ""} />
-                <span className="hidden lg:block ml-4 font-mono text-sm tracking-widest">{item.label}</span>
-              </button>
-            )
-          })}
-        </div>
-
-        <div className="p-4 border-t border-white/10">
-          <div className="bg-gradient-to-br from-gray-900 to-black border border-white/10 rounded-xl p-4 text-center">
-            <div className="w-2 h-2 bg-green-500 rounded-full mx-auto mb-2 shadow-[0_0_10px_#00ff00]" />
-            <p className="text-[10px] font-mono text-gray-500">SYSTEM STABLE</p>
-            <p className="text-[10px] font-mono text-gray-700 mt-1">v3.0.1 (JARVIS)</p>
-          </div>
-        </div>
-      </motion.nav>
-
-      {/* 2. MAIN CONTENT AREA */}
-      <main className="flex-1 overflow-hidden relative">
-        {/* Background Grid Accent */}
-        <div className="absolute inset-0 bg-[linear-gradient(rgba(0,243,255,0.03)_1px,transparent_1px),linear-gradient(90deg,rgba(0,243,255,0.03)_1px,transparent_1px)] bg-[size:100px_100px] pointer-events-none" />
-
-        <div className="h-full overflow-y-auto p-4 lg:p-8 relative z-10 custom-scrollbar">
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0, y: 10, scale: 0.98 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -10, filter: 'blur(10px)' }}
-              transition={{ duration: 0.3 }}
-              className="h-full"
-            >
-              {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
-              {activeTab === 'search' && <NeuralSearch />}
-              {activeTab === 'live' && <LiveSurveillance />}
-              {activeTab === 'nodes' && (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center font-mono opacity-50">
-                    <Grid size={48} className="mx-auto mb-4" />
-                    <p>ACCESSING OFFLINE NODES...</p>
-                    <p className="text-xs mt-2 text-neon-cyan">AUTHORIZATION REQUIRED</p>
-                  </div>
+            {/* 2. TOP BAR (Minimal) */}
+            <header className="relative z-20 flex justify-between items-center p-6 lg:p-10 pointer-events-none">
+              <div className="flex items-center gap-4 pointer-events-auto">
+                <Shield className="w-10 h-10 text-white animate-pulse-fast drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
+                <div>
+                  <h1 className="font-hero text-2xl lg:text-3xl tracking-tighter leading-none">KUMBH<span className="text-transparent bg-clip-text bg-gradient-to-r from-neon-cyan to-white">RAKSHAK</span></h1>
+                  <p className="font-mono text-[10px] text-neon-cyan tracking-[0.3em]">SURVEILLANCE GRID ACTIVE</p>
                 </div>
-              )}
-            </motion.div>
-          </AnimatePresence>
-        </div>
-      </main>
+              </div>
 
+              <div className="hidden lg:flex items-center gap-6 font-mono text-xs text-white/50 bg-white/5 px-6 py-2 rounded-full backdrop-blur-md border border-white/10">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-neon-green rounded-full animate-pulse" />
+                  <span>SYSTEM ONLINE</span>
+                </div>
+                <span>|</span>
+                <span>LAT: 25.4358° N</span>
+              </div>
+            </header>
+
+            {/* 3. MAIN CONTENT AREA */}
+            <main className="flex-1 relative z-10 overflow-hidden px-4 lg:px-12 pb-24 lg:pb-10 pt-4">
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 20, filter: 'blur(10px)' }}
+                  animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                  exit={{ opacity: 0, y: -20, filter: 'blur(10px)' }}
+                  transition={{ duration: 0.5, ease: "circOut" }}
+                  className="h-full overflow-y-auto custom-scrollbar pr-2"
+                >
+                  {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
+                  {activeTab === 'search' && <NeuralSearch />}
+                  {activeTab === 'live' && <LiveSurveillance />}
+                  {activeTab === 'nodes' && (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center font-mono opacity-50 space-y-4">
+                        <div className="relative">
+                          <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full" />
+                          <Cpu size={64} className="mx-auto text-white relative z-10" />
+                        </div>
+                        <h2 className="font-hero text-2xl">RESTRICTED AREA</h2>
+                        <p className="text-xs tracking-widest text-neon-cyan">CLEARANCE LEVEL 5 REQUIRED</p>
+                      </div>
+                    </div>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </main>
+
+            {/* 4. FLOATING BOTTOM LOCK (Navigation) */}
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 w-full max-w-lg px-4">
+              <nav className="glass-panel-organic flex items-center justify-between p-2 lg:p-3 overflow-hidden">
+                {navItems.map((item) => {
+                  const isActive = activeTab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`relative group flex flex-col items-center justify-center w-16 h-16 lg:w-20 lg:h-20 rounded-[1.5rem] transition-all duration-500
+                         ${isActive ? 'bg-white text-black shadow-[0_0_30px_rgba(255,255,255,0.3)]' : 'text-white/50 hover:text-white hover:bg-white/10'}
+                       `}
+                    >
+                      <item.icon size={24} className={`transition-transform duration-300 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`} />
+                      {isActive && <div className="absolute -bottom-1 w-1 h-1 bg-black rounded-full" />}
+
+                      {/* Tooltip */}
+                      <span className="absolute -top-10 opacity-0 group-hover:opacity-100 transition-opacity bg-black/80 text-white text-[10px] font-mono px-2 py-1 rounded backdrop-blur">
+                        {item.label}
+                      </span>
+                    </button>
+                  )
+                })}
+              </nav>
+            </div>
+
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
