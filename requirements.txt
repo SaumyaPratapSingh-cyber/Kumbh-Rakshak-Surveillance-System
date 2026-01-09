@@ -2,11 +2,8 @@ opencv-python-headless
 deepface
 supabase
 python-dotenv
-streamlit
 tf-keras
-pandas
 numpy
-pydeck
 watchdog
 fastapi
 uvicorn
