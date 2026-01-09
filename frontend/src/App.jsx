@@ -323,33 +323,41 @@ const LiveSurveillance = () => {
   const intervalRef = useRef(null);
   const [nodeId] = useState(`WEB_NODE_${Math.floor(Math.random() * 9999)}`);
 
+  const [stream, setStream] = useState(null);
+
   const startBroadcast = async () => {
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
+      const s = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(s);
       setIsBroadcasting(true);
 
       // Start Analysis Loop
       intervalRef.current = setInterval(() => {
         analyzeFrame();
-      }, 2000); // Check every 2 seconds
+      }, 2000);
 
     } catch (err) {
-      alert("Camera Access Denied or Unavailable");
+      alert("Camera Access Denied: " + err.message);
       console.error(err);
     }
   };
 
   const stopBroadcast = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      videoRef.current.srcObject.getTracks().forEach(track => track.stop());
+    if (stream) {
+      stream.getTracks().forEach(track => track.stop());
     }
+    setStream(null);
     if (intervalRef.current) clearInterval(intervalRef.current);
     setIsBroadcasting(false);
     setLastScan(null);
   };
+
+  // Attach stream to video element when it mounts
+  useEffect(() => {
+    if (isBroadcasting && videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [isBroadcasting, stream]);
 
   const analyzeFrame = () => {
     if (!videoRef.current) return;
