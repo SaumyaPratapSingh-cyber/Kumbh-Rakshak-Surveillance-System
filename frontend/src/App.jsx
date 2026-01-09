@@ -255,7 +255,7 @@ const NeuralSearch = () => {
       </div>
 
       {/* RIGHT PANEL: MAP */}
-      <GlassCard className="lg:col-span-8 p-0 overflow-hidden relative border-[#6f00ff]/30 group">
+      <GlassCard className="lg:col-span-8 p-0 overflow-hidden relative border-[#6f00ff]/30 group h-full min-h-[500px] flex flex-col">
         <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%', background: '#05000a' }}>
           <TileLayer
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'

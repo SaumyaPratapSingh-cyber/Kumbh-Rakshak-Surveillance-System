@@ -32,7 +32,7 @@ export const GlassCard = ({ children, className = "", hoverEffect = true, varian
             {hoverEffect && variant === 'cyber' && (
                 <div className="absolute inset-0 bg-gradient-to-br from-[#6f00ff]/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
             )}
-            <div className="relative z-10">{children}</div>
+            <div className="relative z-10 h-full w-full">{children}</div>
         </motion.div>
     );
 };
