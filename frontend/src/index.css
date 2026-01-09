@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .glass-panel {
+    @apply backdrop-blur-xl bg-gradient-to-br from-gray-900/80 to-black/80 border border-white/10 shadow-glass;
+  }
+}
+
+body {
+  background-color: #050505;
+  /* deep-space */
+  background-image:
+    linear-gradient(rgba(0, 86, 210, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 86, 210, 0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: #E0E0E0;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+  border: 1px solid #000;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00F0FF;
+}
+
+/* Leaflet Map Dark Mode Override (for non-satellite tiles if used) */
+.leaflet-container {
+  background: #000;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Scanline Effect */
+.scanline::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+  z-index: 2;
+  background-size: 100% 2px, 3px 100%;
+  pointer-events: none;
+}

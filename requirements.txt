@@ -1,0 +1,7 @@
+opencv-python
+
+deepface
+supabase
+python-dotenv
+streamlit
+tf-keras

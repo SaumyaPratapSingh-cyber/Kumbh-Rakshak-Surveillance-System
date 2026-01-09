@@ -1,0 +1,32 @@
+{
+    "cameras": {
+        "Gate_1_Entry": {
+            "name": "Gate 1 (Civil Lines Entry)",
+            "lat": 25.4358,
+            "lon": 81.8463,
+            "stream_source": 0,
+            "active": true
+        },
+        "Sangam_Ghat": {
+            "name": "Sangam Main Ghat",
+            "lat": 25.4300,
+            "lon": 81.8800,
+            "stream_source": "rtsp://mock_stream_url_2",
+            "active": false
+        },
+        "Station_Exit": {
+            "name": "Prayagraj Station Exit",
+            "lat": 25.4400,
+            "lon": 81.8300,
+            "stream_source": "rtsp://mock_stream_url_3",
+            "active": false
+        },
+        "Hanuman_Temple": {
+            "name": "Bade Hanuman Mandir Queue",
+            "lat": 25.4280,
+            "lon": 81.8750,
+            "stream_source": "rtsp://mock_stream_url_4",
+            "active": false
+        }
+    }
+}
