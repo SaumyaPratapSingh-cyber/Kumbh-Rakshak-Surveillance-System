@@ -26,15 +26,15 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
 app = FastAPI(title="Kumbh-Rakshak API", version="2.0")
 
-# @app.on_event("startup")
-# async def startup_event():
-#     print("✅ STARTUP: Loading ArcFace Model...")
-#     # Pre-warm model to catch errors early
-#     try:
-#         DeepFace.build_model("ArcFace")
-#         print("✅ STARTUP: ArcFace Model Loaded Successfully.")
-#     except Exception as e:
-#         print(f"❌ STARTUP ERROR: Could not load ArcFace. {e}")
+@app.on_event("startup")
+async def startup_event():
+    print("✅ STARTUP: Loading ArcFace Model...")
+    # Pre-warm model to catch errors early
+    try:
+        DeepFace.build_model("ArcFace")
+        print("✅ STARTUP: ArcFace Model Loaded Successfully.")
+    except Exception as e:
+        print(f"❌ STARTUP ERROR: Could not load ArcFace. {e}")
 
 # CORS for React
 app.add_middleware(

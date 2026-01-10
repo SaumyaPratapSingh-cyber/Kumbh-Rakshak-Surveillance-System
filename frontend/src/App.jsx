@@ -85,19 +85,27 @@ const Dashboard = ({ setActiveTab }) => {
     }
 
     try {
-      const { count } = await supabase.from('sightings').select('*', { count: 'exact', head: true });
-      const { count: nodeCount } = await supabase.from('camera_nodes').select('*', { count: 'exact', head: true });
+      // Robust error handling for Stats
+      const sRes = await supabase.from('sightings').select('*', { count: 'exact', head: true });
+      if (sRes.error) console.error("Supabase Stats Error:", sRes.error);
+
+      const nRes = await supabase.from('camera_nodes').select('*', { count: 'exact', head: true });
+      if (nRes.error) console.error("Supabase Nodes Error:", nRes.error);
 
       setStats({
-        total_sightings: count || 0,
-        active_nodes: nodeCount || 0,
-        alerts_24h: Math.floor(Math.random() * 5) // Mock alert count
+        total_sightings: sRes.count || 0,
+        active_nodes: nRes.count || 0,
+        alerts_24h: Math.floor(Math.random() * 5)
       });
 
-      const { data } = await supabase.from('sightings').select('*').order('created_at', { ascending: false }).limit(5);
-      if (data) setRecentSightings(data);
+      const { data, error } = await supabase.from('sightings').select('*').order('created_at', { ascending: false }).limit(5);
+      if (error) {
+        console.error("Supabase Recent Sightings 400 Error Debug:", error);
+      } else if (data) {
+        setRecentSightings(data);
+      }
     } catch (err) {
-      console.error("Stats Fetch Error:", err);
+      console.error("Stats Fetch Exception:", err);
     }
   };
 
