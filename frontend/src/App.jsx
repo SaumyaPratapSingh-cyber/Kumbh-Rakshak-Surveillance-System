@@ -216,7 +216,9 @@ const NeuralSearch = () => {
         setMapCenter([res.data.matches[0].lat, res.data.matches[0].lon]);
       }
     } catch (err) {
-      alert("Search Failed: " + err.message);
+      console.error("Search Error Details:", err);
+      const msg = err.response?.data?.detail || err.message;
+      alert("Search Failed: " + msg);
     } finally {
       setLoading(false);
     }
