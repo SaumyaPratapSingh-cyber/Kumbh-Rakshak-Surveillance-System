@@ -8,9 +8,11 @@ import shutil
 from datetime import datetime
 from dotenv import load_dotenv
 from supabase import create_client
-from deepface import DeepFace
+from supabase import create_client
+# from deepface import DeepFace # MOVED TO INSIDE FUNCTION TO SAVE RAM
 import time
 import argparse
+import gc
 from pydantic import BaseModel
 from pathlib import Path
 
@@ -198,19 +200,26 @@ async def search_face(file: UploadFile = File(...)):
 
         # 1. Detect & Embed
         try:
+             print("🧠 Waking up AI Brain...")
+             from deepface import DeepFace # LAZY IMPORT
+             
              embedding_objs = DeepFace.represent(
                 img_path=file_location,
                 model_name="ArcFace",
                 detector_backend="opencv",
                 enforce_detection=True
             )
+             # Free up memory immediately after inference
+             gc.collect()
         except ValueError:
              # Try without strict detection if failed
+             from deepface import DeepFace
              embedding_objs = DeepFace.represent(
                 img_path=file_location,
                 model_name="ArcFace",
                 enforce_detection=False
             )
+             gc.collect()
 
         # Ensure embedding is a standard list of floats (Crucial for JSON serialization)
         embedding = [float(x) for x in embedding_objs[0]["embedding"]]
