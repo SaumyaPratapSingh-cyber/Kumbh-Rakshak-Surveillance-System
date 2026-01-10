@@ -28,5 +28,5 @@ COPY . .
 # Expose Port (Hugging Face Default)
 EXPOSE 7860
 
-# Run Command (Default to 7860 for HF, Render overrides this via settings anyway)
-CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "7860"]
+# Run Command (Flat structure: main.py is in root)
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
