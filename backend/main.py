@@ -206,7 +206,7 @@ async def search_face(file: UploadFile = File(...)):
              
              embedding_objs = DeepFace.represent(
                 img_path=file_location,
-                model_name="SFace",
+                model_name="ArcFace",
                 detector_backend="opencv",
                 enforce_detection=True
             )
@@ -217,7 +217,7 @@ async def search_face(file: UploadFile = File(...)):
              from deepface import DeepFace
              embedding_objs = DeepFace.represent(
                 img_path=file_location,
-                model_name="SFace",
+                model_name="ArcFace",
                 enforce_detection=False
             )
              gc.collect()
