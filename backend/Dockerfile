@@ -20,14 +20,9 @@ COPY requirements.txt .
 
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy Backend Source
-COPY backend ./backend
-COPY cameras.json . 
-# Note: cameras.json might be in root, main.py expects ../cameras.json which is weird config. 
-# We should fix main.py path or assume flattened structure in Docker.
-# Let's adjust main.py to look in current dir too or copy it to appropriate place.
-# For now, let's copy everything relevant.
-
+# Copy Backend Source (Simplified for Flat Structure)
+# If running from root, this copies everything.
+# If running from backend dir, this copies everything.
 COPY . .
 
 # Expose Port (Hugging Face Default)
