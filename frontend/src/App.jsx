@@ -489,7 +489,14 @@ function App() {
             >
               {activeTab === 'dashboard' && <Dashboard setActiveTab={setActiveTab} />}
               {activeTab === 'search' && <NeuralSearch />}
-              {activeTab === 'live' && <LiveSurveillance />}
+              {activeTab === 'live' && (
+                <LiveSurveillance
+                  isBroadcasting={isBroadcasting}
+                  setIsBroadcasting={setIsBroadcasting}
+                  stream={stream}
+                  setStream={setStream}
+                />
+              )}
               {activeTab === 'nodes' && (
                 <div className="flex items-center justify-center h-full">
                   <div className="text-center font-mono opacity-50 space-y-4">
