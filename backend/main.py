@@ -208,7 +208,8 @@ async def search_face(file: UploadFile = File(...)):
                 img_path=file_location,
                 model_name="ArcFace",
                 detector_backend="opencv",
-                enforce_detection=True
+                enforce_detection=True,
+                normalization="base"
             )
              # Free up memory immediately after inference
              gc.collect()
@@ -218,7 +219,8 @@ async def search_face(file: UploadFile = File(...)):
              embedding_objs = DeepFace.represent(
                 img_path=file_location,
                 model_name="ArcFace",
-                enforce_detection=False
+                enforce_detection=False,
+                normalization="base"
             )
              gc.collect()
 
@@ -232,7 +234,7 @@ async def search_face(file: UploadFile = File(...)):
             try:
                 response = supabase.rpc("match_faces", {
                     "query_embedding": embedding,
-                    "match_threshold": 0.60, # VERY STRICT (Distance < 0.40)
+                    "match_threshold": 0.70, # MILITARY GRADE STRICT
                     "match_count": 50
                 }).execute()
                 break # Success
