@@ -12,6 +12,7 @@ from deepface import DeepFace
 import time
 import argparse
 from pydantic import BaseModel
+from pathlib import Path
 
 # Load Config
 load_dotenv()
@@ -40,17 +41,32 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"], # In production, replace with specific domain
     allow_credentials=True,
-    allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.get("/")
+async def health_check():
+    return {"status": "online", "model": "ArcFace", "time": datetime.now().isoformat()}
 
 # Load Cameras
 CAMERA_CONFIG = {}
 try:
-    with open("../cameras.json", "r") as f:
-        CAMERA_CONFIG = json.load(f).get("cameras", {})
-except:
-    print("Warning: cameras.json not found")
+    # Robust path finding: Look in current dir OR one level up (if running from backend subdir)
+    base_path = Path(__file__).resolve().parent
+    config_path = base_path / "cameras.json"
+    
+    if not config_path.exists():
+        # Try parent directory (root)
+        config_path = base_path.parent / "cameras.json"
+
+    if config_path.exists():
+        print(f"✅ Loading Camera Config from: {config_path}")
+        with open(config_path, "r") as f:
+            CAMERA_CONFIG = json.load(f).get("cameras", {})
+    else:
+        print(f"⚠️ Warning: cameras.json not found at {config_path}")
+except Exception as e:
+    print(f"⚠️ Warning: Failed to load cameras.json. {e}")
 
 class CameraNode(BaseModel):
     id: str

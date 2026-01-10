@@ -13,9 +13,14 @@ import FluidBackground from './components/FluidBackground';
 import HeroLanding from './components/HeroLanding';
 
 // --- CONFIGURATION ---
+// --- CONFIGURATION ---
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_KEY;
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Robust API URL handling: strip trailing slash if present
+const RAW_API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_URL = RAW_API_URL.replace(/\/$/, "");
+
+console.log("🔗 Connecting to Grid Node:", API_URL);
 
 // Safe Supabase Initialization
 let supabase = null;
@@ -421,6 +426,22 @@ function App() {
   // LIFTED STATE FOR CAMERA PERSISTENCE
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [stream, setStream] = useState(null);
+  const [backendStatus, setBackendStatus] = useState("checking"); // checking, online, offline
+
+  useEffect(() => {
+    const checkBackend = async () => {
+      try {
+        await axios.get(`${API_URL}/`);
+        setBackendStatus("online");
+      } catch (e) {
+        console.error("Backend Offline:", e);
+        setBackendStatus("offline");
+      }
+    };
+    checkBackend();
+    const interval = setInterval(checkBackend, 30000); // Check every 30s
+    return () => clearInterval(interval);
+  }, []);
 
   const navItems = [
     { id: 'dashboard', icon: LayoutGrid, label: "Overview" },
@@ -468,8 +489,10 @@ function App() {
 
           <div className="hidden lg:flex items-center gap-6 font-mono text-xs text-white/50 bg-white/5 px-6 py-2 rounded-full backdrop-blur-md border border-white/10">
             <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-[#00ff9d] rounded-full animate-pulse" />
-              <span>SYSTEM ONLINE</span>
+              <div className={`w-2 h-2 rounded-full ${backendStatus === 'online' ? 'bg-[#00ff9d] animate-pulse' : 'bg-critical-red animate-ping'}`} />
+              <span className={backendStatus === 'online' ? 'text-[#00ff9d]' : 'text-critical-red'}>
+                {backendStatus === 'online' ? 'BACKEND ONLINE' : 'GRID OFFLINE'}
+              </span>
             </div>
             <span>|</span>
             <span>LAT: 25.4358° N</span>
