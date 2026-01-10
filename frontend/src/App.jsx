@@ -253,8 +253,11 @@ const NeuralSearch = () => {
     try {
       const res = await axios.post(`${API_URL}/search/biometric`, formData);
       setResults(res.data.matches);
+
       if (res.data.matches.length > 0) {
         setMapCenter([res.data.matches[0].lat, res.data.matches[0].lon]);
+      } else {
+        alert("NEGATIVE: No matching identity found in the Grid.");
       }
     } catch (err) {
       console.error("Search Error Details:", err);

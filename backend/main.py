@@ -232,7 +232,7 @@ async def search_face(file: UploadFile = File(...)):
             try:
                 response = supabase.rpc("match_faces", {
                     "query_embedding": embedding,
-                    "match_threshold": 0.40, 
+                    "match_threshold": 0.60, # VERY STRICT (Distance < 0.40)
                     "match_count": 50
                 }).execute()
                 break # Success
