@@ -98,7 +98,7 @@ const Dashboard = ({ setActiveTab }) => {
         alerts_24h: Math.floor(Math.random() * 5)
       });
 
-      const { data, error } = await supabase.from('sightings').select('*').order('created_at', { ascending: false }).limit(5);
+      const { data, error } = await supabase.from('sightings').select('*').order('seen_at', { ascending: false }).limit(5);
       if (error) {
         console.error("Supabase Recent Sightings 400 Error Debug:", error);
       } else if (data) {
