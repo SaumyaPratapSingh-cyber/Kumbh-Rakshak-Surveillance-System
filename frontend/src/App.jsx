@@ -66,12 +66,27 @@ const CrashScreen = ({ error }) => (
 const Dashboard = ({ setActiveTab }) => {
   const [stats, setStats] = useState({ total_sightings: 0, active_nodes: 0, alerts_24h: 0 });
   const [recentSightings, setRecentSightings] = useState([]);
+  const [nodes, setNodes] = useState([]);
 
   useEffect(() => {
     fetchStats();
-    const interval = setInterval(fetchStats, 5000);
+    fetchNodes(); // Get map markers
+    const interval = setInterval(() => { fetchStats(); fetchNodes(); }, 5000);
     return () => clearInterval(interval);
   }, []);
+
+  const fetchNodes = async () => {
+    if (!supabase) {
+      // Mock Nodes
+      setNodes([
+        { id: '1', name: 'Sangam Gate 1', lat: 25.4358, lon: 81.8463, status: 'online' },
+        { id: '2', name: 'Hanuman Temple', lat: 25.4320, lon: 81.8420, status: 'offline' }
+      ]);
+      return;
+    }
+    const { data } = await supabase.from('camera_nodes').select('*');
+    if (data) setNodes(data);
+  };
 
   const fetchStats = async () => {
     // If Supabase is missing, use mock data
@@ -154,11 +169,37 @@ const Dashboard = ({ setActiveTab }) => {
             <span className="text-xs font-mono text-[#e9b3fb]">LIVE GEOSPATIAL GRID</span>
           </div>
 
-          {/* Cyber Grid Background */}
-          <div className="absolute inset-0 bg-[url('/assets/cyber_grid.png')] bg-cover bg-center opacity-60 mix-blend-lighten group-hover:scale-105 transition-transform duration-[3s]" />
+          {/* Live Dashboard Map */}
+          <div className="absolute inset-0 z-0">
+            <MapContainer
+              center={[25.4358, 81.8463]}
+              zoom={14}
+              style={{ height: '100%', width: '100%' }}
+              zoomControl={false}
+              attributionControl={false}
+            >
+              <TileLayer url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}" />
+              {/* Render Camera Markers if available */}
+              {nodes.map(node => (
+                <Marker key={node.id} position={[node.lat, node.lon]}>
+                  <Popup className="cyber-popup">
+                    <div className="text-xs font-mono">
+                      <strong className="text-[#6f00ff]">{node.name}</strong><br />
+                      <span className={node.status === 'online' ? 'text-green-500' : 'text-red-500'}>
+                        ● {node.status.toUpperCase()}
+                      </span>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
 
-          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-t from-black/80 via-transparent to-transparent">
-            <NeonButton onClick={() => setActiveTab('search')} icon={MapIcon} className="backdrop-blur-xl">Open Tactical Map</NeonButton>
+            {/* Overlay Gradient for Cyber Effect */}
+            <div className="absolute inset-0 pointer-events-none bg-gradient-to-t from-black/60 via-transparent to-transparent z-[400]" />
+          </div>
+
+          <div className="absolute bottom-4 right-4 z-[500]">
+            <NeonButton onClick={() => setActiveTab('search')} icon={MapIcon} className="backdrop-blur-xl scale-75 origin-bottom-right">Expand Map</NeonButton>
           </div>
         </GlassCard>
 
