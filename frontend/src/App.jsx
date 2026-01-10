@@ -258,8 +258,8 @@ const NeuralSearch = () => {
       <GlassCard className="lg:col-span-8 p-0 overflow-hidden relative border-[#6f00ff]/30 group h-full min-h-[500px] flex flex-col">
         <MapContainer center={mapCenter} zoom={13} style={{ height: '100%', width: '100%', background: '#05000a' }}>
           <TileLayer
-            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
           />
           <MapUpdater center={mapCenter} />
           {results.map((match, i) => (
@@ -284,19 +284,19 @@ const NeuralSearch = () => {
 };
 
 // 3. LIVE SURVEILLANCE COMPONENT
-const LiveSurveillance = () => {
+const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream }) => {
   const videoRef = useRef(null);
-  const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [lastScan, setLastScan] = useState(null);
   const intervalRef = useRef(null);
   const [nodeId] = useState(`NODE-${Math.floor(Math.random() * 9999)}`);
-  const [stream, setStream] = useState(null);
 
   const startBroadcast = async () => {
     try {
       const s = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(s);
       setIsBroadcasting(true);
+      // Restart analysis interval
+      if (intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = setInterval(analyzeFrame, 2000);
     } catch (err) {
       alert("ACCESS DENIED: " + err.message);
@@ -310,13 +310,20 @@ const LiveSurveillance = () => {
     setIsBroadcasting(false);
   };
 
+  // Re-attach stream when component mounts or stream changes
   useEffect(() => {
     if (isBroadcasting && videoRef.current && stream) {
       videoRef.current.srcObject = stream;
+      // Restart analysis if needed (interval is cleared on unmount so we need to restart it)
+      if (!intervalRef.current) {
+        intervalRef.current = setInterval(analyzeFrame, 2000);
+      }
     }
+    // Cleanup interval on unmount, BUT NOT THE STREAM
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
   }, [isBroadcasting, stream]);
-
-  useEffect(() => () => stopBroadcast(), []);
 
   const analyzeFrame = () => {
     if (!videoRef.current) return;
@@ -410,6 +417,10 @@ function App() {
 
   const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
+
+  // LIFTED STATE FOR CAMERA PERSISTENCE
+  const [isBroadcasting, setIsBroadcasting] = useState(false);
+  const [stream, setStream] = useState(null);
 
   const navItems = [
     { id: 'dashboard', icon: LayoutGrid, label: "Overview" },
