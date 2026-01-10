@@ -314,43 +314,44 @@ async def analyze_frame(
              print(f"Node Update Error: {db_err}")
 
         # 3. Detect & Embed (ArcFace)
-        # We use a lower threshold for 'detection' in video stream to be snappy
         try:
+            print(f"📷 Indexing Frame from {cam_id}")
+            from deepface import DeepFace # LAZY IMPORT
             embedding_objs = DeepFace.represent(
                 img_path=temp_filename,
                 model_name="ArcFace",
                 detector_backend="opencv",
                 enforce_detection=True
             )
+            gc.collect()
         except ValueError:
-            # Face not found
-            return {"status": "no_face", "cam_id": cam_id}
+            if os.path.exists(temp_filename): os.remove(temp_filename)
+            return {"status": "no_face"}
+        except Exception:
+            # Fallback for lazy import failure or other issues
+            if os.path.exists(temp_filename): os.remove(temp_filename)
+            return {"status": "error"}
 
-        # 4. For each face found (usually just 1 in selfie mode)
-        matches_found = []
+        # 4. STORE EVERY FACE (The "Indexing" Step)
+        saved_count = 0
         for obj in embedding_objs:
             embedding = obj["embedding"]
             
-            # Match against DB
-            response = supabase.rpc("match_faces", {
-                "query_embedding": embedding,
-                "match_threshold": 0.40,  # Strict match
-                "match_count": 1
-            }).execute()
-            
-            if response.data:
-                match = response.data[0]
-                matches_found.append(match)
-                
-                # Log Sighting
-                sighting = {
-                    "face_id": match['id'],
-                    "cam_id": cam_id,
-                    "similarity": match['similarity'],
-                    "seen_at": datetime.utcnow().isoformat()
-                }
-                supabase.table("sightings").insert(sighting).execute()
-                print(f"✅ SIGHTING: Found {match['id']} on {cam_id}")
+            # Insert into DB so it can be searched LATER
+            # This turns the camera into a "Data Collector"
+            data = {
+                "cam_id": cam_id,
+                "face_vector": embedding, 
+                "cam_name": f"Mobile Node: {cam_id}",
+                "seen_at": datetime.utcnow().isoformat()
+            }
+            try:
+                supabase.table("sightings").insert(data).execute()
+                saved_count += 1
+            except Exception as e:
+                print(f"⚠️ Indexing Error: {e}")
+
+        print(f"✅ Indexed {saved_count} faces from {cam_id}")
 
         # Cleanup
         os.remove(temp_filename)
