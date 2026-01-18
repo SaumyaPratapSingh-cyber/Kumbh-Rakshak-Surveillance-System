@@ -348,11 +348,26 @@ const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream
   const [lastScan, setLastScan] = useState(null);
   const intervalRef = useRef(null);
   const [nodeId] = useState(`NODE-${Math.floor(Math.random() * 9999)}`);
+  const gpsRef = useRef({ lat: 0.0, lon: 0.0 }); // Use Ref for real-time access inside interval
 
   const startBroadcast = async () => {
     try {
+      // 1. Get Camera
       const s = await navigator.mediaDevices.getUserMedia({ video: true });
       setStream(s);
+
+      // 2. Get Location
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            gpsRef.current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+            console.log("📍 GPS Locked:", gpsRef.current);
+          },
+          (err) => console.warn("GPS Access Denied/Error:", err),
+          { enableHighAccuracy: true }
+        );
+      }
+
       setIsBroadcasting(true);
       // Restart analysis interval
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -396,6 +411,8 @@ const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream
       const formData = new FormData();
       formData.append('file', blob, 'frame.jpg');
       formData.append('cam_id', nodeId);
+      formData.append('lat', gpsRef.current.lat);
+      formData.append('lon', gpsRef.current.lon);
       try {
         const res = await axios.post(`${API_URL}/analyze_frame`, formData);
         setLastScan({ ts: new Date().toLocaleTimeString(), data: res.data });
