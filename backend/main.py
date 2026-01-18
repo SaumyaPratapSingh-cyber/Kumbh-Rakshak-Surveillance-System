@@ -1,4 +1,4 @@
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uvicorn
@@ -287,9 +287,9 @@ async def search_face(file: UploadFile = File(...)):
 @app.post("/analyze_frame")
 async def analyze_frame(
     file: UploadFile = File(...), 
-    cam_id: str = "BROWSER_CAM",
-    lat: float = 0.0,
-    lon: float = 0.0
+    cam_id: str = Form("BROWSER_CAM"),
+    lat: float = Form(0.0),
+    lon: float = Form(0.0)
 ):
     """
     Accepts a frame from a browser client, runs DeepFace, 

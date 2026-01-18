@@ -348,32 +348,49 @@ const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream
   const [lastScan, setLastScan] = useState(null);
   const intervalRef = useRef(null);
   const [nodeId] = useState(`NODE-${Math.floor(Math.random() * 9999)}`);
-  const gpsRef = useRef({ lat: 0.0, lon: 0.0 }); // Use Ref for real-time access inside interval
+  const gpsRef = useRef({ lat: 0.0, lon: 0.0 });
+  const [gpsStatus, setGpsStatus] = useState("unknown"); // unknown, locating, locked, denied
 
   const startBroadcast = async () => {
     try {
-      // 1. Get Camera
-      const s = await navigator.mediaDevices.getUserMedia({ video: true });
-      setStream(s);
+      setGpsStatus("locating");
 
-      // 2. Get Location
-      if (navigator.geolocation) {
+      // 1. Get Location (Promise Wrapper)
+      const getLocation = () => new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Geolocation not supported"));
+          return;
+        }
         navigator.geolocation.getCurrentPosition(
           (pos) => {
             gpsRef.current = { lat: pos.coords.latitude, lon: pos.coords.longitude };
             console.log("📍 GPS Locked:", gpsRef.current);
+            setGpsStatus("locked");
+            resolve(gpsRef.current);
           },
-          (err) => console.warn("GPS Access Denied/Error:", err),
-          { enableHighAccuracy: true }
+          (err) => {
+            console.warn("GPS Access Denied/Error:", err);
+            setGpsStatus("denied");
+            // Resolve anyway to start camera even if GPS fails (fallback to 0,0)
+            resolve({ lat: 0.0, lon: 0.0 });
+          },
+          { enableHighAccuracy: true, timeout: 5000 }
         );
-      }
+      });
+
+      // Wait for location (max 5s)
+      await getLocation();
+
+      // 2. Get Camera
+      const s = await navigator.mediaDevices.getUserMedia({ video: true });
+      setStream(s);
 
       setIsBroadcasting(true);
       // Restart analysis interval
       if (intervalRef.current) clearInterval(intervalRef.current);
       intervalRef.current = setInterval(analyzeFrame, 2000);
     } catch (err) {
-      alert("ACCESS DENIED: " + err.message);
+      alert("System Error: " + err.message);
     }
   };
 
@@ -442,6 +459,10 @@ const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream
                 <div className="absolute bottom-4 left-4 bg-black/60 p-4 font-mono text-xs text-[#00ff9d] border-l-2 border-[#00ff9d]">
                   <p>LINK_QUALITY: 100%</p>
                   <p>LATENCY: 12ms</p>
+                  <p className={gpsStatus === 'locked' ? "text-[#00ff9d]" : "text-critical-red"}>
+                    GPS: {gpsStatus.toUpperCase()}
+                    {gpsStatus === 'locked' && ` [${gpsRef.current.lat.toFixed(4)}, ${gpsRef.current.lon.toFixed(4)}]`}
+                  </p>
                   {lastScan && <p className="mt-2 text-white">LAST_PACKET: {lastScan.ts} | MATCHES: {lastScan.data?.matches?.length || 0}</p>}
                 </div>
               </div>
