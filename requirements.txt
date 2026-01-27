@@ -7,4 +7,5 @@ numpy
 watchdog
 fastapi
 uvicorn
-python-multiparttf-keras
+python-multipart
+tf-keras
