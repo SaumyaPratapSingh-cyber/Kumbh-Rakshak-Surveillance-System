@@ -359,18 +359,11 @@ async def analyze_frame(
                 "lat": lat,
                 "lon": lon
             }
-            data = {
-                "cam_id": cam_id,
-                "face_vector": embedding, 
-                "cam_name": f"Mobile Node: {cam_id}",
-                "seen_at": datetime.utcnow().isoformat(),
-                "lat": lat,
-                "lon": lon
-            }
             try:
                 # Primary Attempt: With Geotags
                 supabase.table("sightings").insert(data).execute()
                 saved_count += 1
+                print(f"✅ STORED FACE | Cam: {cam_id} | GPS: {lat},{lon}")
             except Exception as e_primary:
                 print(f"⚠️ Primary Insert Failed (Geotag Issue?): {e_primary}")
                 try:

@@ -343,13 +343,12 @@ const NeuralSearch = () => {
 };
 
 // 3. LIVE SURVEILLANCE COMPONENT
-const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream }) => {
+const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream, gpsRef, gpsStatus, setGpsStatus }) => {
   const videoRef = useRef(null);
   const [lastScan, setLastScan] = useState(null);
   const intervalRef = useRef(null);
   const [nodeId] = useState(`NODE-${Math.floor(Math.random() * 9999)}`);
-  const gpsRef = useRef({ lat: 0.0, lon: 0.0 });
-  const [gpsStatus, setGpsStatus] = useState("unknown"); // unknown, locating, locked, denied
+  // GPS State is now lifted to App.jsx for persistence
 
   const startBroadcast = async () => {
     try {
@@ -432,7 +431,11 @@ const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream
       formData.append('lon', gpsRef.current.lon);
       try {
         const res = await axios.post(`${API_URL}/analyze_frame`, formData);
-        setLastScan({ ts: new Date().toLocaleTimeString(), data: res.data });
+        setLastScan({
+          ts: new Date().toLocaleTimeString(),
+          data: res.data,
+          detected: res.data.faces_detected || 0
+        });
       } catch (e) {
         console.error("Link Error", e);
       }
@@ -463,7 +466,14 @@ const LiveSurveillance = ({ isBroadcasting, setIsBroadcasting, stream, setStream
                     GPS: {gpsStatus.toUpperCase()}
                     {gpsStatus === 'locked' && ` [${gpsRef.current.lat.toFixed(4)}, ${gpsRef.current.lon.toFixed(4)}]`}
                   </p>
-                  {lastScan && <p className="mt-2 text-white">LAST_PACKET: {lastScan.ts} | MATCHES: {lastScan.data?.matches?.length || 0}</p>}
+                  {lastScan && (
+                    <div className="mt-2">
+                      <p className="text-white">LAST_PACKET: {lastScan.ts}</p>
+                      <p className={lastScan.detected > 0 ? "text-[#00ff9d] font-bold animate-pulse" : "text-gray-500"}>
+                        INDEXED: {lastScan.detected} FACES
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
             </>
@@ -515,9 +525,12 @@ function App() {
   const [showLanding, setShowLanding] = useState(true);
   const [activeTab, setActiveTab] = useState('dashboard');
 
-  // LIFTED STATE FOR CAMERA PERSISTENCE
+  // LIFTED STATE FOR CAMERA Persistence
   const [isBroadcasting, setIsBroadcasting] = useState(false);
   const [stream, setStream] = useState(null);
+  // LIFTED STATE FOR GPS Persistence
+  const gpsRef = useRef({ lat: 0.0, lon: 0.0 });
+  const [gpsStatus, setGpsStatus] = useState("unknown");
   const [backendStatus, setBackendStatus] = useState("checking"); // checking, online, offline
 
   useEffect(() => {
@@ -610,6 +623,9 @@ function App() {
                   setIsBroadcasting={setIsBroadcasting}
                   stream={stream}
                   setStream={setStream}
+                  gpsRef={gpsRef}
+                  gpsStatus={gpsStatus}
+                  setGpsStatus={setGpsStatus}
                 />
               )}
               {activeTab === 'nodes' && (
