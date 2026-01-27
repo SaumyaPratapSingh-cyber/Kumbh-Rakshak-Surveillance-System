@@ -10,11 +10,14 @@ drop table if exists camera_nodes cascade;
 drop function if exists match_faces cascade;
 
 -- 3. Re-create 'sightings' for ArcFace (512 Dimensions)
+-- 3. Re-create 'sightings' with Geotagging
 create table sightings (
   id bigserial primary key,
   cam_id text,
   seen_at timestamp,
-  face_vector vector(512)
+  face_vector vector(512),
+  lat float default 0.0,
+  lon float default 0.0
 );
 
 -- 4. Re-create 'camera_nodes' for Real-Time Status & Map
@@ -36,6 +39,8 @@ create or replace function match_faces (
 returns table (
   cam_id text,
   seen_at timestamp,
+  lat float,
+  lon float,
   similarity float
 )
 language plpgsql
@@ -45,6 +50,8 @@ begin
   select
     sightings.cam_id,
     sightings.seen_at,
+    sightings.lat,
+    sightings.lon,
     1 - (sightings.face_vector <=> query_embedding) as similarity
   from sightings
   where 1 - (sightings.face_vector <=> query_embedding) > match_threshold

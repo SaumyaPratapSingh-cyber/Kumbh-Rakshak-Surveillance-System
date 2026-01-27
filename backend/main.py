@@ -234,7 +234,7 @@ async def search_face(file: UploadFile = File(...)):
             try:
                 response = supabase.rpc("match_faces", {
                     "query_embedding": embedding,
-                    "match_threshold": 0.50, # Adjusted for better real-world recall
+                    "match_threshold": 0.45, # Lowered for better recall
                     "match_count": 50
                 }).execute()
                 break # Success
@@ -258,13 +258,23 @@ async def search_face(file: UploadFile = File(...)):
         for m in matches:
             cam_id = m['cam_id']
             
-            # Use DB Node first, fall back to Config, then default
+            # Use Sighting Location (Primary) -> DB Node (Secondary) -> Config (Tertiary)
             db_node = node_map.get(cam_id, {})
             static_node = CAMERA_CONFIG.get(cam_id, {})
             
             final_name = db_node.get("name") or static_node.get("name") or cam_id
-            final_lat = db_node.get("lat") or static_node.get("lat") or 0.0
-            final_lon = db_node.get("lon") or static_node.get("lon") or 0.0
+            
+            # Prioritize the location WHERE IT WAS SEEN specific to that moment
+            sighting_lat = m.get('lat', 0.0)
+            sighting_lon = m.get('lon', 0.0)
+            
+            # If sighting has valid GPS (not 0), use it. Else fallback to node location.
+            if sighting_lat != 0.0 and sighting_lon != 0.0:
+                final_lat = sighting_lat
+                final_lon = sighting_lon
+            else:
+                final_lat = db_node.get("lat") or static_node.get("lat") or 0.0
+                final_lon = db_node.get("lon") or static_node.get("lon") or 0.0
             
             enriched_matches.append({
                 **m,
@@ -345,13 +355,33 @@ async def analyze_frame(
                 "cam_id": cam_id,
                 "face_vector": embedding, 
                 "cam_name": f"Mobile Node: {cam_id}",
-                "seen_at": datetime.utcnow().isoformat()
+                "seen_at": datetime.utcnow().isoformat(),
+                "lat": lat,
+                "lon": lon
+            }
+            data = {
+                "cam_id": cam_id,
+                "face_vector": embedding, 
+                "cam_name": f"Mobile Node: {cam_id}",
+                "seen_at": datetime.utcnow().isoformat(),
+                "lat": lat,
+                "lon": lon
             }
             try:
+                # Primary Attempt: With Geotags
                 supabase.table("sightings").insert(data).execute()
                 saved_count += 1
-            except Exception as e:
-                print(f"⚠️ Indexing Error: {e}")
+            except Exception as e_primary:
+                print(f"⚠️ Primary Insert Failed (Geotag Issue?): {e_primary}")
+                try:
+                    # Fallback Attempt: Legacy (No Geotags)
+                    del data["lat"]
+                    del data["lon"]
+                    supabase.table("sightings").insert(data).execute()
+                    saved_count += 1
+                    print("✅ Recovered: Inserted without Geotags.")
+                except Exception as e_secondary:
+                     print(f"❌ Indexing COMPLETELY Failed: {e_secondary}")
 
         print(f"✅ Indexed {saved_count} faces from {cam_id}")
 
