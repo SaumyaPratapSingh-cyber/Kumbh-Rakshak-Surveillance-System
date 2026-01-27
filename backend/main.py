@@ -307,10 +307,14 @@ async def analyze_frame(
     Acts as a server-side version of indexer.py.
     """
     temp_filename = f"frame_{int(time.time())}_{cam_id}.jpg"
+    matches_found = []
     try:
         # 1. Save Frame
         with open(temp_filename, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
+        
+        file_size = os.path.getsize(temp_filename)
+        print(f"📥 Received Frame: {cam_id} | Size: {file_size} bytes")
 
         # 2. Register/Update Node Status (Heartbeat)
         try:
@@ -327,22 +331,24 @@ async def analyze_frame(
 
         # 3. Detect & Embed (ArcFace)
         try:
-            print(f"📷 Indexing Frame from {cam_id}")
+            print(f"📷 Indexing Frame from {cam_id}...")
             from deepface import DeepFace # LAZY IMPORT
             embedding_objs = DeepFace.represent(
                 img_path=temp_filename,
                 model_name="ArcFace",
-                detector_backend="opencv",
+                detector_backend="opencv", # Try 'ssd' or 'mtcnn' if this fails
                 enforce_detection=True
             )
             gc.collect()
-        except ValueError:
+        except ValueError as ve:
+            print(f"❌ DeepFace: No Face detected in frame. ({ve})")
             if os.path.exists(temp_filename): os.remove(temp_filename)
-            return {"status": "no_face"}
-        except Exception:
+            return {"status": "no_face", "faces_detected": 0}
+        except Exception as e:
+            print(f"❌ Detector Error: {e}")
             # Fallback for lazy import failure or other issues
             if os.path.exists(temp_filename): os.remove(temp_filename)
-            return {"status": "error"}
+            return {"status": "error", "faces_detected": 0}
 
         # 4. STORE EVERY FACE (The "Indexing" Step)
         saved_count = 0
@@ -354,7 +360,7 @@ async def analyze_frame(
             data = {
                 "cam_id": cam_id,
                 "face_vector": embedding, 
-                "cam_name": f"Mobile Node: {cam_id}",
+                # cam_name removed (stored in camera_nodes)
                 "seen_at": datetime.utcnow().isoformat(),
                 "lat": lat,
                 "lon": lon
